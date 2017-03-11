@@ -21,7 +21,9 @@ public class Robot extends IterativeRobot {
 	CANTalon backLeftMotor = new CANTalon(2);
 	CANTalon backRightMotor = new CANTalon(4);
 	CANTalon winchMotor = new CANTalon(5);
-
+	
+	Solenoid piston = new Solenoid(0);
+	
 //	CANTalon shooterMotorA = new CANTalon(6);
 //	CANTalon shooterMotorB = new CANTalon(7);
 //	CANTalon azimuthMotor = new CANTalon(10);
@@ -64,11 +66,12 @@ public class Robot extends IterativeRobot {
 		CameraServer.getInstance().startAutomaticCapture();
 //		shooterMotorB.changeControlMode(TalonControlMode.Follower);
 //		shooterMotorB.set(6);
+		
+		piston.set(false);
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		
 
 		if (gamepad.getRawButton(5)) { // left top
 			mode = 0; // regular
