@@ -32,12 +32,20 @@ public class Robot extends IterativeRobot {
 
 	boolean winchPressedLastTime = false;
 	boolean runWinch = false;
+	
+	int mode = 0;
 
+	double leftSpeed = 0.0;
+	double rightSpeed = 0.0;
+	
 	long startTime = 0;
 
 	@Override
 	public void robotInit() {
-
+		frontLeftMotor.enableBrakeMode(true);
+		frontRightMotor.enableBrakeMode(true);
+		backLeftMotor.enableBrakeMode(true);
+		frontLeftMotor.enableBrakeMode(true);
 	}
 
 	public void autonomousInit() {
@@ -60,8 +68,28 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		rd.tankDrive(gamepad.getRawAxis(5), gamepad.getRawAxis(1));
+		
 
+		if (gamepad.getRawButton(5)) { // left top
+			mode = 0; // regular
+		} else if (gamepad.getRawButton(6)) { // right top
+			mode = 1; // half
+		} else if (gamepad.getRawButton(2)) { // B button
+			mode = 2;
+		}
+		
+		if (mode == 0) {
+			leftSpeed = gamepad.getRawAxis(5);
+			rightSpeed = gamepad.getRawAxis(1);
+		} else if (mode == 1) {
+			leftSpeed = gamepad.getRawAxis(5)/2;
+			rightSpeed = gamepad.getRawAxis(1)/2;
+		} else if (mode == 2) {
+			leftSpeed = gamepad.getRawAxis(5) * Math.abs(gamepad.getRawAxis(5));
+			rightSpeed = gamepad.getRawAxis(1) * Math.abs(gamepad.getRawAxis(1));
+		}
+		rd.tankDrive(leftSpeed, rightSpeed);
+			
 		boolean winchPressed = operatorJoystick.getRawButton(11);
 
 		if (winchPressed) {
