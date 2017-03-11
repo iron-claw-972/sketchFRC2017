@@ -52,6 +52,13 @@ public class Robot extends IterativeRobot {
 
 	public void autonomousInit() {
 		startTime = System.currentTimeMillis();
+		
+		try {
+			new Compressor(30).start();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("COMPRESSOR FAILED!");
+		}
 	}
 
 	public void autonomousPeriodic() {
@@ -66,6 +73,12 @@ public class Robot extends IterativeRobot {
 		CameraServer.getInstance().startAutomaticCapture();
 //		shooterMotorB.changeControlMode(TalonControlMode.Follower);
 //		shooterMotorB.set(6);
+		try {
+			new Compressor(30).start();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("COMPRESSOR FAILED!");
+		}
 		
 		piston.set(false);
 	}
