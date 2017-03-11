@@ -4,6 +4,7 @@ import com.ctre.CANTalon;
 import com.ctre.CANTalon.TalonControlMode;
 
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -105,12 +106,10 @@ public class Robot extends IterativeRobot {
 			rightSpeed = gamepad.getRawAxis(1) * Math.abs(gamepad.getRawAxis(1));
 		}
 		rd.tankDrive(leftSpeed, rightSpeed);
-			
-		boolean winchPressed = operatorJoystick.getRawButton(11);
 
-		if (winchPressed) {
+		if (operatorJoystick.getRawButton(11) || gamepad.getRawButton(4)) {
 			winchMotor.set(1.0);
-		} else if (operatorJoystick.getRawButton(12)) {
+		} else if (operatorJoystick.getRawButton(12) || gamepad.getRawButton(1)) {
 			winchMotor.set(0.5);
 		} else {
 			winchMotor.set(0);
