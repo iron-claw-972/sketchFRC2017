@@ -25,10 +25,6 @@ public class Robot extends IterativeRobot {
 	
 	DoubleSolenoid piston = new DoubleSolenoid(4,5);
 	
-//	CANTalon shooterMotorA = new CANTalon(6);
-//	CANTalon shooterMotorB = new CANTalon(7);
-//	CANTalon azimuthMotor = new CANTalon(10);
-
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
 	RobotDrive rd = new RobotDrive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor);
@@ -45,10 +41,10 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void robotInit() {
-		frontLeftMotor.enableBrakeMode(true);
-		frontRightMotor.enableBrakeMode(true);
-		backLeftMotor.enableBrakeMode(true);
-		frontLeftMotor.enableBrakeMode(true);
+		frontLeftMotor.enableBrakeMode(false);
+		frontRightMotor.enableBrakeMode(false);
+		backLeftMotor.enableBrakeMode(false);
+		frontLeftMotor.enableBrakeMode(false);
 	}
 
 	public void autonomousInit() {
@@ -117,9 +113,6 @@ public class Robot extends IterativeRobot {
 			winchMotor.set(0);
 		}
 
-//		if (operatorJoystick.getRawButton(1)) {
-//			shooterMotorA.set((1.0 - operatorJoystick.getThrottle()) / 2.0);
-//		}
 	}
 
 	/**
