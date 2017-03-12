@@ -6,6 +6,8 @@ public class MotionProfiling {
 
 	private int resetCounter = 0;
 
+	SystemModel sm = new SystemModel();
+	
 	/*
 	 * Updates robot model.
 	 *
@@ -23,10 +25,10 @@ public class MotionProfiling {
 	public void update(double dT, double gyro, double x_accel, double y_accel, double frontLeftEncoderValue, double backLeftEncoderValue,
 			double frontRightEncoderValue, double backRightEncoderValue, double leftAccel, double rightAccel) {
 		// @formatter:off
-		SystemModel.updateLR(dT, leftAccel, rightAccel, frontLeftEncoderValue * Constants.ROBOT_DRIVE_WHEEL_CIRCUMFERENCE / Constants.ENCODER_CLICKS_PER_ROTATION, 
+		sm.updateLR(dT, leftAccel, rightAccel, frontLeftEncoderValue * Constants.ROBOT_DRIVE_WHEEL_CIRCUMFERENCE / Constants.ENCODER_CLICKS_PER_ROTATION, 
 				- backLeftEncoderValue * Constants.ROBOT_DRIVE_WHEEL_CIRCUMFERENCE / Constants.ENCODER_CLICKS_PER_ROTATION, frontRightEncoderValue * Constants.ROBOT_DRIVE_WHEEL_CIRCUMFERENCE / Constants.ENCODER_CLICKS_PER_ROTATION, 
 				backRightEncoderValue * Constants.ROBOT_DRIVE_WHEEL_CIRCUMFERENCE / Constants.ENCODER_CLICKS_PER_ROTATION);
-		SystemModel.updateSys(gyro, x_accel, y_accel, dT);
+		sm.updateSys(gyro, x_accel, y_accel, dT);
 		// @formatter:on
 		Logger.log("Motion_Profiling_Data", "t=" + Time.get() + " x=" + getX() + " y=" + getY() + " theta=" + getTheta());
 	}
@@ -39,8 +41,8 @@ public class MotionProfiling {
 	 */
 	public void init(double x_init, double y_init) {
 		IMU.init();
-		SystemModel.updateLR(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-		SystemModel.setStateSys(x_init, y_init, 0.0, 0.0);
+		sm.setLRState(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+		sm.setSysState(x_init, y_init, 0.0, 0.0, 0.0);
 		Logger.log("Motion_Profiling_Data", "Initializing motion profiling...");
 		Logger.log("Motion_Profiling_Data", "t=" + Time.get() + " x=" + getX() + " y=" + getY() + " theta=" + getTheta());
 	}
@@ -52,37 +54,37 @@ public class MotionProfiling {
 	 * @param y_pos	New y position in meters
 	 * @param theta	New angle in degrees
 	 */
-	public void reset(double x_pos, double y_pos, double theta) {
+	public void reset(Robot r, double x_pos, double y_pos, double theta) {
 		double distance = 0.5 * ((Math.PI * Constants.ROBOT_WIDTH) / 360) * theta;
 		// this makes sure that our system model doesn't mess up if theta isn't zero
 		
 		double average_encoder_value = 0.0;
-		if (!SystemModel.useBackLeftEncoder) {
-			if (!SystemModel.useBackRightEncoder) {
-				average_encoder_value = (Robot.leftDriveEncoderFront.get() + Robot.rightDriveEncoderFront.get()) / 2;
-			} else if (!SystemModel.useFrontRightEncoder) {
-				average_encoder_value = (Robot.leftDriveEncoderFront.get() + Robot.rightDriveEncoderBack.get()) / 2;
+		if (!sm.useBackLeftEncoder) {
+			if (!sm.useBackRightEncoder) {
+				average_encoder_value = (r.leftDriveEncoderFront.get() + r.rightDriveEncoderFront.get()) / 2;
+			} else if (!sm.useFrontRightEncoder) {
+				average_encoder_value = (r.leftDriveEncoderFront.get() + r.rightDriveEncoderBack.get()) / 2;
 			} else {
-				average_encoder_value = (Robot.leftDriveEncoderFront.get() + Robot.rightDriveEncoderFront.get() + Robot.rightDriveEncoderBack.get()) / 3;
+				average_encoder_value = (r.leftDriveEncoderFront.get() + r.rightDriveEncoderFront.get() + r.rightDriveEncoderBack.get()) / 3;
 			}
-		} else if (!SystemModel.useFrontLeftEncoder) {
-			if (!SystemModel.useBackRightEncoder) {
-				average_encoder_value = (Robot.leftDriveEncoderBack.get() + Robot.rightDriveEncoderFront.get()) / 2;
-			} else if (!SystemModel.useFrontRightEncoder) {
-				average_encoder_value = (Robot.leftDriveEncoderBack.get() + Robot.rightDriveEncoderBack.get()) / 2;
+		} else if (!sm.useFrontLeftEncoder) {
+			if (!sm.useBackRightEncoder) {
+				average_encoder_value = (r.leftDriveEncoderBack.get() + r.rightDriveEncoderFront.get()) / 2;
+			} else if (!sm.useFrontRightEncoder) {
+				average_encoder_value = (r.leftDriveEncoderBack.get() + r.rightDriveEncoderBack.get()) / 2;
 			} else {
-				average_encoder_value = (Robot.leftDriveEncoderBack.get() + Robot.rightDriveEncoderFront.get() + Robot.rightDriveEncoderBack.get()) / 3;
+				average_encoder_value = (r.leftDriveEncoderBack.get() + r.rightDriveEncoderFront.get() + r.rightDriveEncoderBack.get()) / 3;
 			}
-		} else if (!SystemModel.useBackRightEncoder) {
-			average_encoder_value = (Robot.leftDriveEncoderFront.get() + Robot.rightDriveEncoderFront.get() + Robot.leftDriveEncoderBack.get()) / 3;
-		} else if (!SystemModel.useFrontRightEncoder) {
-			average_encoder_value = (Robot.leftDriveEncoderFront.get() + Robot.rightDriveEncoderBack.get() + Robot.leftDriveEncoderBack.get()) / 3;
+		} else if (!sm.useBackRightEncoder) {
+			average_encoder_value = (r.leftDriveEncoderFront.get() + r.rightDriveEncoderFront.get() + r.leftDriveEncoderBack.get()) / 3;
+		} else if (!sm.useFrontRightEncoder) {
+			average_encoder_value = (r.leftDriveEncoderFront.get() + r.rightDriveEncoderBack.get() + r.leftDriveEncoderBack.get()) / 3;
 		} else {
-			average_encoder_value = (Robot.leftDriveEncoderFront.get() + Robot.rightDriveEncoderBack.get() + Robot.leftDriveEncoderBack.get() + Robot.rightDriveEncoderFront.get()) / 4;
+			average_encoder_value = (r.leftDriveEncoderFront.get() + r.rightDriveEncoderBack.get() + r.leftDriveEncoderBack.get() + r.rightDriveEncoderFront.get()) / 4;
 		}
 
-		SystemModel.setLRState(average_encoder_value + distance, 0.0, 0.0, average_encoder_value - distance, 0.0, 0.0);
-		SystemModel.setSysState(x_pos, y_pos, 0.0, 0.0, theta);
+		sm.setLRState(average_encoder_value + distance, 0.0, 0.0, average_encoder_value - distance, 0.0, 0.0);
+		sm.setSysState(x_pos, y_pos, 0.0, 0.0, theta);
 		IMU.recalibrate(0.0);
 		resetCounter++;
 		Logger.renameFile("Motion_Profiling_Data", "Motion_Profiling_Data_ResetNum" + resetCounter);
@@ -99,30 +101,30 @@ public class MotionProfiling {
 	}
 
 	public double getX() {
-		return SystemModel.x_k;
+		return sm.x_k;
 	}
 
 	public double getY() {
-		return SystemModel.y_k;
+		return sm.y_k;
 	}
 
 	public double getV_X() {
-		return SystemModel.v_xk;
+		return sm.v_xk;
 	}
 	
 	public double getV_Y() {
-		return SystemModel.v_yk;
+		return sm.v_yk;
 	}
 	
 	public double getA_X() {
-		return SystemModel.a_xk;	
+		return sm.a_xk;	
 	}
 	
 	public double getA_Y() {
-		return SystemModel.a_yk;
+		return sm.a_yk;
 	}
 
 	public double getTheta() {
-		return SystemModel.theta_k;
+		return sm.theta_k;
 	}
 }

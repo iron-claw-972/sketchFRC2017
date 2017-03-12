@@ -97,7 +97,7 @@ public class Robot extends IterativeRobot {
 				done = autonDrive(Constants.MIDDLE_GEAR_AUTO_X, Constants.MIDDLE_GEAR_AUTO_Y - (Constants.ROBOT_LENGTH / 2), Constants.MIDDLE_GEAR_AUTO_THETA, loopTime);
 			}
 			if (done) {
-				mot.reset(Constants.MIDDLE_GEAR_AUTO_X, Constants.MIDDLE_GEAR_AUTO_Y - (Constants.ROBOT_LENGTH / 2), Constants.MIDDLE_GEAR_AUTO_THETA);
+				mot.reset(this, Constants.MIDDLE_GEAR_AUTO_X, Constants.MIDDLE_GEAR_AUTO_Y - (Constants.ROBOT_LENGTH / 2), Constants.MIDDLE_GEAR_AUTO_THETA);
 				gear_x = 0.0;
 				gear_y = 0.0;
 				gear_theta = 0.0;

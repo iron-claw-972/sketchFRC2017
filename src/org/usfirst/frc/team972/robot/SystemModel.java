@@ -5,22 +5,22 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class SystemModel {
 
 	//x is m, y is m, v is m/s, theta is degrees
-	static double x_k = 0.0;
-	static double y_k = 0.0;
-	static double v_xk = 0.0;
-	static double v_yk = 0.0;
-	static double a_xk = 0.0;
-	static double a_yk = 0.0;
-	static double theta_k = 0.0; // at t=k
+	double x_k = 0.0;
+	double y_k = 0.0;
+	double v_xk = 0.0;
+	double v_yk = 0.0;
+	double a_xk = 0.0;
+	double a_yk = 0.0;
+	double theta_k = 0.0; // at t=k
 	
 	// The following variables are private to make it less confusing to use
-	private static double x_k1 = 0.0;
-	private static double y_k1 = 0.0;
-	static double v_xk1 = 0.0;
-	static double v_yk1 = 0.0;
-	static double a_xk1 = 0.0;
-	static double a_yk1 = 0.0;
-	private static double theta_k1 = 0.0; // at t=k+1
+	private double x_k1 = 0.0;
+	private double y_k1 = 0.0;
+	double v_xk1 = 0.0;
+	double v_yk1 = 0.0;
+	double a_xk1 = 0.0;
+	double a_yk1 = 0.0;
+	private double theta_k1 = 0.0; // at t=k+1
 
 	/**
 	 * Updates system model.
@@ -28,7 +28,7 @@ public class SystemModel {
 	 * @param gyro	Gyro angle
 	 * @param dT	Loop time (change in time) in seconds
 	 */
-	public static void updateSys(double gyro, double accel_x, double accel_y, double dT) {
+	public void updateSys(double gyro, double accel_x, double accel_y, double dT) {
 		x_k1 = x_k + (v_xk * dT) + (a_xk * Math.pow(dT, 2) / 2);
 		y_k1 = y_k + (v_yk * dT) + (a_yk * Math.pow(dT, 2) / 2);
 		
@@ -86,7 +86,7 @@ public class SystemModel {
 	 * @param v_state		New velocity in m/s
 	 * @param theta_state	New angle in degrees
 	 */
-	public static void setSysState(double x_state, double y_state, double vx_state, double vy_state, double theta_state) {
+	public void setSysState(double x_state, double y_state, double vx_state, double vy_state, double theta_state) {
 		x_k = x_state;
 		y_k = y_state;
 		v_xk = vx_state;
@@ -95,29 +95,29 @@ public class SystemModel {
 	}
 	
 	// x is m, v is m/s, a is m/s^2
-	static double leftx_k = 0.0;
-	static double leftv_k = 0.0;
-	static double lefta_k = 0.0;
-	static double rightx_k = 0.0;
-	static double rightv_k = 0.0;
-	static double righta_k = 0.0;
+	double leftx_k = 0.0;
+	double leftv_k = 0.0;
+	double lefta_k = 0.0;
+	double rightx_k = 0.0;
+	double rightv_k = 0.0;
+	double righta_k = 0.0;
 		
-	private static double leftr_k = 0.0;
-	private static double rightr_k = 0.0;
+	private double leftr_k = 0.0;
+	private double rightr_k = 0.0;
 		
-	private static double leftx_k1 = 0.0;
-	private static double leftv_k1 = 0.0;
-	private static double lefta_k1 = 0.0;
-	private static double rightx_k1 = 0.0;
-	private static double rightv_k1 = 0.0;
-	private static double righta_k1 = 0.0;
+	private double leftx_k1 = 0.0;
+	private double leftv_k1 = 0.0;
+	private double lefta_k1 = 0.0;
+	private double rightx_k1 = 0.0;
+	private double rightv_k1 = 0.0;
+	private double righta_k1 = 0.0;
 
-	static boolean useFrontLeftEncoder = true;
-	static boolean useBackLeftEncoder = true;
-	static boolean useFrontRightEncoder = true;
-	static boolean useBackRightEncoder = true;
+	boolean useFrontLeftEncoder = true;
+	boolean useBackLeftEncoder = true;
+	boolean useFrontRightEncoder = true;
+	boolean useBackRightEncoder = true;
 	
-	public static void updateLR(double dT, double powerToLeft, double powerToRight, double frontLeftEncoderDistance, double backLeftEncoderDistance, double frontRightEncoderDistance, double backRightEncoderDistance) {
+	public void updateLR(double dT, double powerToLeft, double powerToRight, double frontLeftEncoderDistance, double backLeftEncoderDistance, double frontRightEncoderDistance, double backRightEncoderDistance) {
 		leftx_k1 = leftx_k + (dT * leftv_k) + ((Math.pow(dT, 2) * lefta_k) / 2);
 		leftv_k1 = leftv_k + (dT * lefta_k);
 		lefta_k1 = powerToLeft;
@@ -177,7 +177,7 @@ public class SystemModel {
 		righta_k = righta_k1;
 	}
 
-	public static void setLRState(double leftx_state, double leftv_state, double lefta_state, double rightx_state, double rightv_state, double righta_state) {
+	public void setLRState(double leftx_state, double leftv_state, double lefta_state, double rightx_state, double rightv_state, double righta_state) {
 		leftx_k = leftx_state;
 		leftv_k = leftv_state;
 		lefta_k = lefta_state;
