@@ -37,6 +37,7 @@ public class Robot extends IterativeRobot {
 	Encoder rightDriveEncoderBack = new Encoder(6, 7, false, Encoder.EncodingType.k2X);
 	
 	MotionProfiling mot = new MotionProfiling();
+	SystemModel sys = new SystemModel();
 	
 //	CANTalon shooterMotorA = new CANTalon(6);
 //	CANTalon shooterMotorB = new CANTalon(7);
@@ -292,9 +293,9 @@ public class Robot extends IterativeRobot {
 	 */
 	public double getAccel(String robotSide) {
 		if (robotSide == "left") {
-			return 0.4448 * ((frontLeftMotor.getOutputCurrent() + backLeftMotor.getOutputCurrent()) / 2) * (1 - 0.0356 * SystemModel.leftv_k) / Constants.ROBOT_MASS;
+			return 0.4448 * ((frontLeftMotor.getOutputCurrent() + backLeftMotor.getOutputCurrent()) / 2) * (1 - 0.0356 * sys.leftv_k) / Constants.ROBOT_MASS;
 		} else if (robotSide == "right") {
-			return 0.4448 * ((frontRightMotor.getOutputCurrent() + backRightMotor.getOutputCurrent()) / 2) * (1 - 0.0356 * SystemModel.rightv_k) / Constants.ROBOT_MASS;
+			return 0.4448 * ((frontRightMotor.getOutputCurrent() + backRightMotor.getOutputCurrent()) / 2) * (1 - 0.0356 * sys.rightv_k) / Constants.ROBOT_MASS;
 		} else {
 			return -9001.0;
 		}
