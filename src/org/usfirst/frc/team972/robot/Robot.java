@@ -22,25 +22,40 @@ public class Robot extends IterativeRobot {
 	CANTalon backLeftMotor = new CANTalon(2);
 	CANTalon backRightMotor = new CANTalon(4);
 	CANTalon winchMotor = new CANTalon(5);
-	
-	DoubleSolenoid piston = new DoubleSolenoid(4,5);
-	
+
+	DoubleSolenoid piston = new DoubleSolenoid(4, 5);
+
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
 	RobotDrive rd = new RobotDrive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor);
 
 	boolean winchPressedLastTime = false;
 	boolean runWinch = false;
-	
+
 	int mode = 0;
 
 	double leftSpeed = 0.0;
 	double rightSpeed = 0.0;
-	
+
 	long startTime = 0;
+
+	boolean runTimeBaseline = false, runTimeMidGear = false, runEncoderMidGear = false, runMotionProfiling = false;
+	final String timeBaseline = "Time Baseline";
+	final String timeMidGear = "Time Middle Gear";
+	final String encoderMidGear = "Encoder Middle Gear";
+	final String motionProfilingRun = "Motion Profiling";
+	final String doNothing = "Do Nothing";
+	String autoSelected;
+	SendableChooser<String> chooser = new SendableChooser<>();
 
 	@Override
 	public void robotInit() {
+//		chooser.addDefault("Do Nothing", doNothing);
+		chooser.addDefault("Time Baseline", timeBaseline);
+		chooser.addObject("Time Middle Gear", timeMidGear);
+		chooser.addObject("Encoder Middle Gear", encoderMidGear);
+		chooser.addObject("motionProfilingRun", motionProfilingRun);
+		SmartDashboard.putData("Auto choices", chooser);
 		frontLeftMotor.enableBrakeMode(false);
 		frontRightMotor.enableBrakeMode(false);
 		backLeftMotor.enableBrakeMode(false);
@@ -49,13 +64,17 @@ public class Robot extends IterativeRobot {
 
 	public void autonomousInit() {
 		startTime = System.currentTimeMillis();
-		
+
 		try {
 			new Compressor(30).start();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("COMPRESSOR FAILED!");
 		}
+
+		autoSelected = chooser.getSelected();
+//		autoSelected = SmartDashboard.getString("Auto Selector", timeBaseline);
+		System.out.println("Auto selected: " + autoSelected);
 	}
 
 	public void autonomousPeriodic() {
@@ -63,6 +82,16 @@ public class Robot extends IterativeRobot {
 			rd.tankDrive(-0.7, -0.7);
 		} else {
 			rd.tankDrive(0, 0);
+		}
+
+		switch (autoSelected) {
+			case timeMidGear:
+
+				break;
+			case timeBaseline:
+			default:
+				// Put default auto code here
+				break;
 		}
 	}
 
@@ -74,7 +103,7 @@ public class Robot extends IterativeRobot {
 			e.printStackTrace();
 			System.out.println("COMPRESSOR FAILED!");
 		}
-		
+
 		piston.set(DoubleSolenoid.Value.kReverse);
 	}
 
