@@ -22,11 +22,11 @@ public class Constants {
 	public static final double AUTON_STOPPING_DISTANCE_1 = 1.5; // distance in meters to start stopping (sharp deceleration)
 	public static final double AUTON_STOPPING_DISTANCE_2 = 0.5; // distance in meters to finish stopping (lower deceleration) (less than distance 1)
 	public static final double AUTON_VELOCITY_STOPPING_PROPORTION = 0.35; // proportion of max velocity city that should be reached after first stopping
-	public static final double AUTON_DRIVE_VP = 0.08; // proportion of velocity error
+	public static final double AUTON_DRIVE_VP = 0.12; // proportion of velocity error
 	public static final double AUTON_DRIVE_VD = 0.016; // proportion of acceleration (should be small)
 	public static final double AUTON_DRIVE_AP = 0.01; // proportion of angle error (during motion)
 	public static final double AUTON_DRIVE_AD = 0.0005; // proportion of angle change (during motion) (should be small)
-	public static final double AUTON_DRIVE_F = 0.13; //feed forward
+	public static final double AUTON_DRIVE_F = 0.15; //feed forward
 	public static final double AUTON_DRIVE_TURNP = 0.005; // proportion of angle error (during motion)
 	public static final double AUTON_DRIVE_TURND = 0.0012; // proportion of angle change (during motion) (should be small)
 	public static final double AUTON_DRIVE_TURNF = 0.05; //feed forward
