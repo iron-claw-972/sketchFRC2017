@@ -49,7 +49,7 @@ public class Robot extends IterativeRobot {
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
 	RobotDrive rd = new RobotDrive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor);
-
+0
 	boolean winchPressedLastTime = false;
 	boolean runWinch = false;
 
@@ -110,8 +110,12 @@ public class Robot extends IterativeRobot {
 		autoSelected = "Encoder Middle Gear";
 		System.out.println("Auto Selected: " + autoSelected);
 		SmartDashboard.putString("Auto Selected", autoSelected);
+<<<<<<< HEAD
 		
 		piston.set(DoubleSolenoid.Value.kForward);
+=======
+		mot.updateSmartDashboard();
+>>>>>>> 0b984bd4edf2b43c85003de429e0308049de041c
 	}
 
 	public void autonomousPeriodic() {
@@ -141,18 +145,18 @@ public class Robot extends IterativeRobot {
 					}
 				}
 				if (gear_x != 0.0 && gear_y != 0.0) {
-					done = autonDrive(gear_x, gear_y - Constants.LENGTH_GEAR_PEG - (Constants.ROBOT_LENGTH / 2),
+					done = autonDrive(gear_x, gear_y - Constants.LENGTH_GEAR_PEG,
 							gear_theta, loopTime);
 				}
 			} else {
 				visionData = Vision.newData();
 				done = autonDrive(Constants.MIDDLE_GEAR_AUTO_X,
-						Constants.MIDDLE_GEAR_AUTO_Y - (Constants.ROBOT_LENGTH / 2), Constants.MIDDLE_GEAR_AUTO_THETA,
+						Constants.MIDDLE_GEAR_AUTO_Y, Constants.MIDDLE_GEAR_AUTO_THETA,
 						loopTime);
 			}
 			if (done) {
 				mot.reset(this, Constants.MIDDLE_GEAR_AUTO_X,
-						Constants.MIDDLE_GEAR_AUTO_Y - (Constants.ROBOT_LENGTH / 2), Constants.MIDDLE_GEAR_AUTO_THETA);
+						Constants.MIDDLE_GEAR_AUTO_Y, Constants.MIDDLE_GEAR_AUTO_THETA);
 				gear_x = 0.0;
 				gear_y = 0.0;
 				gear_theta = 0.0;
@@ -196,6 +200,7 @@ public class Robot extends IterativeRobot {
 				// Put default auto code here
 				break;
 		}
+		mot.updateSmartDashboard();
 	}
 
 	public void teleopInit() {
@@ -212,6 +217,7 @@ public class Robot extends IterativeRobot {
 	
 	public void disabledPeriodic() {
 		piston.set(DoubleSolenoid.Value.kReverse);
+		mot.updateSmartDashboard();
 	}
 
 	@Override
@@ -247,7 +253,7 @@ public class Robot extends IterativeRobot {
 		} else {
 			winchMotor.set(0);
 		}
-
+		mot.updateSmartDashboard();
 	}
 
 	public double ticksFromMeters(double meters) {

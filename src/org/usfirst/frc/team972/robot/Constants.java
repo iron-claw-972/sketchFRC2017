@@ -8,7 +8,7 @@ public class Constants {
 	public static final double ROBOT_MAX_VELOCITY = 3.5; // m/s
 	public static final double ROBOT_DRIVE_WHEEL_CIRCUMFERENCE = 0.320; // meters (diameter 0.101 meters)
 	public static final double ENCODER_CLICKS_PER_ROTATION = 2048;
-	public static final double ROBOT_MASS = 53.5;
+	public static final double ROBOT_MASS = 36;
 	
 	// System Model
 	public static final double ALPHA = 1.0;
