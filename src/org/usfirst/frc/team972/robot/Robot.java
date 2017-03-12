@@ -68,8 +68,6 @@ public class Robot extends IterativeRobot {
 
 	public void teleopInit() {
 		CameraServer.getInstance().startAutomaticCapture();
-//		shooterMotorB.changeControlMode(TalonControlMode.Follower);
-//		shooterMotorB.set(6);
 		try {
 			new Compressor(30).start();
 		} catch (Exception e) {
@@ -86,9 +84,9 @@ public class Robot extends IterativeRobot {
 		if (gamepad.getRawButton(5)) { // left top
 			mode = 0; // regular
 		} else if (gamepad.getRawButton(6)) { // right top
-			mode = 1; // half
+			mode = 1; // 3/4 speed
 		} else if (gamepad.getRawButton(2)) { // B button
-			mode = 2;
+			mode = 2; // squared
 		}
 		
 		leftSpeed = gamepad.getRawAxis(5);
