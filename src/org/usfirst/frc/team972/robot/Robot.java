@@ -95,16 +95,18 @@ public class Robot extends IterativeRobot {
 			mode = 2;
 		}
 		
+		leftSpeed = gamepad.getRawAxis(5);
+		rightSpeed = gamepad.getRawAxis(1);
+		
 		if (mode == 0) {
-			leftSpeed = gamepad.getRawAxis(5);
-			rightSpeed = gamepad.getRawAxis(1);
 		} else if (mode == 1) {
-			leftSpeed = gamepad.getRawAxis(5)/2;
-			rightSpeed = gamepad.getRawAxis(1)/2;
+			leftSpeed *= 3.0/4.0;
+			rightSpeed *= 3.0/4.0;
 		} else if (mode == 2) {
-			leftSpeed = gamepad.getRawAxis(5) * Math.abs(gamepad.getRawAxis(5));
-			rightSpeed = gamepad.getRawAxis(1) * Math.abs(gamepad.getRawAxis(1));
+			leftSpeed = Math.abs(leftSpeed) * leftSpeed;
+			rightSpeed = Math.abs(rightSpeed) * rightSpeed;
 		}
+		
 		rd.tankDrive(leftSpeed, rightSpeed);
 
 		if (operatorJoystick.getRawButton(11) || gamepad.getRawButton(4)) {
