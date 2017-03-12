@@ -40,22 +40,25 @@ public class Robot extends IterativeRobot {
 	long startTime = 0;
 
 	boolean runTimeBaseline = false, runTimeMidGear = false, runEncoderMidGear = false, runMotionProfiling = false;
-	final String timeBaseline = "Time Baseline";
-	final String timeMidGear = "Time Middle Gear";
-	final String encoderMidGear = "Encoder Middle Gear";
-	final String motionProfilingRun = "Motion Profiling";
-	final String doNothing = "Do Nothing";
+	
+	final String TIME_BASELINE = "Time Baseline";
+	final String TIME_MIDDLE_GEAR = "Time Middle Gear";
+	final String ENCODER_MIDDLE_GEAR = "Encoder Middle Gear";
+	final String MOTION_PROFILING = "Motion Profiling";
+	final String DO_NOTHING = "Do Nothing";
 	String autoSelected;
-	SendableChooser<String> chooser = new SendableChooser<>();
+	
+	SendableChooser<String> autoChooser = new SendableChooser<>();
 
 	@Override
 	public void robotInit() {
-//		chooser.addDefault("Do Nothing", doNothing);
-		chooser.addDefault("Time Baseline", timeBaseline);
-		chooser.addObject("Time Middle Gear", timeMidGear);
-		chooser.addObject("Encoder Middle Gear", encoderMidGear);
-		chooser.addObject("motionProfilingRun", motionProfilingRun);
-		SmartDashboard.putData("Auto choices", chooser);
+		autoChooser.addDefault("Time Baseline", TIME_BASELINE);
+		autoChooser.addObject("Time Middle Gear", TIME_MIDDLE_GEAR);
+		autoChooser.addObject("Encoder Middle Gear", ENCODER_MIDDLE_GEAR);
+		autoChooser.addObject("Motion Profiling", MOTION_PROFILING);
+		autoChooser.addObject("Do Nothing", DO_NOTHING);
+		SmartDashboard.putData("Auto choices", autoChooser);
+		
 		frontLeftMotor.enableBrakeMode(false);
 		frontRightMotor.enableBrakeMode(false);
 		backLeftMotor.enableBrakeMode(false);
@@ -72,9 +75,10 @@ public class Robot extends IterativeRobot {
 			System.out.println("COMPRESSOR FAILED!");
 		}
 
-		autoSelected = chooser.getSelected();
-//		autoSelected = SmartDashboard.getString("Auto Selector", timeBaseline);
-		System.out.println("Auto selected: " + autoSelected);
+		autoSelected = autoChooser.getSelected();
+
+		System.out.println("Auto Selected: " + autoSelected);
+		SmartDashboard.putString("Auto Selected", autoSelected);
 	}
 
 	public void autonomousPeriodic() {
@@ -85,10 +89,10 @@ public class Robot extends IterativeRobot {
 		}
 
 		switch (autoSelected) {
-			case timeMidGear:
+			case TIME_MIDDLE_GEAR:
 
 				break;
-			case timeBaseline:
+			case TIME_BASELINE:
 			default:
 				// Put default auto code here
 				break;
