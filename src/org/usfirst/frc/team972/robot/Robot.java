@@ -16,7 +16,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * directory.
  */
 public class Robot extends IterativeRobot {
-
+	
+	public final double METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR = 1.613;
+	
+	public final double ENCODER_CLICKS_PER_ROTATION = 2048;
+	public final double ROBOT_DRIVE_WHEEL_CIRCUMFERENCE = 0.320;
+	
 	CANTalon frontLeftMotor = new CANTalon(1);
 	CANTalon frontRightMotor = new CANTalon(3);
 	CANTalon backLeftMotor = new CANTalon(2);
@@ -38,6 +43,7 @@ public class Robot extends IterativeRobot {
 	double rightSpeed = 0.0;
 
 	long startTime = 0;
+	String autoSelected;
 
 	boolean runTimeBaseline = false, runTimeMidGear = false, runEncoderMidGear = false, runMotionProfiling = false;
 	
@@ -68,6 +74,10 @@ public class Robot extends IterativeRobot {
 	public void autonomousInit() {
 		startTime = System.currentTimeMillis();
 
+		frontLeftMotor.setPosition(0);
+		frontRightMotor.setPosition(0);
+		
+
 		try {
 			new Compressor(30).start();
 		} catch (Exception e) {
@@ -80,12 +90,29 @@ public class Robot extends IterativeRobot {
 		System.out.println("Auto Selected: " + autoSelected);
 		SmartDashboard.putString("Auto Selected", autoSelected);
 	}
+	
 
 	public void autonomousPeriodic() {
-		if (System.currentTimeMillis() - startTime < 2500) {
-			rd.tankDrive(-0.7, -0.7);
-		} else {
-			rd.tankDrive(0, 0);
+		if(autoSelected == "Encoder Middle Gear") {
+			
+			boolean pastPoint = ((frontLeftMotor.getPosition() < ticksFromMeters(METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR)) || (frontLeftMotor.getPosition() < ticksFromMeters(METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR)));
+			if ((System.currentTimeMillis() - startTime < 2540) && pastPoint) {
+				rd.tankDrive(-0.7, -0.7);
+			} else {
+				rd.tankDrive(0, 0);
+			}
+		} else if (autoSelected == "Time Middle Gear") {
+			if (System.currentTimeMillis() - startTime < 1920) {
+				rd.tankDrive(-0.7, -0.7);
+			} else {
+				rd.tankDrive(0, 0);
+			}
+		} else if (autoSelected == "Time Baseline") {
+			if (System.currentTimeMillis() - startTime < 2500) {
+				rd.tankDrive(-0.7, -0.7);
+			} else {
+				rd.tankDrive(0, 0);
+			}
 		}
 
 		switch (autoSelected) {
@@ -146,6 +173,11 @@ public class Robot extends IterativeRobot {
 
 	}
 
+	
+	public double ticksFromMeters(double meters) {
+		return (ENCODER_CLICKS_PER_ROTATION/ROBOT_DRIVE_WHEEL_CIRCUMFERENCE) * meters;
+	}
+	
 	/**
 	 * This function is called periodically during test mode
 	 */
