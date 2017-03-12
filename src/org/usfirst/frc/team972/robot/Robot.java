@@ -25,10 +25,6 @@ public class Robot extends IterativeRobot {
 
 	DoubleSolenoid piston = new DoubleSolenoid(4, 5);
 
-	// CANTalon shooterMotorA = new CANTalon(6);
-	// CANTalon shooterMotorB = new CANTalon(7);
-	// CANTalon azimuthMotor = new CANTalon(10);
-
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
 	RobotDrive rd = new RobotDrive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor);
@@ -54,16 +50,16 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void robotInit() {
-		frontLeftMotor.enableBrakeMode(true);
-		frontRightMotor.enableBrakeMode(true);
-		backLeftMotor.enableBrakeMode(true);
-		frontLeftMotor.enableBrakeMode(true);
 //		chooser.addDefault("Do Nothing", doNothing);
 		chooser.addDefault("Time Baseline", timeBaseline);
 		chooser.addObject("Time Middle Gear", timeMidGear);
 		chooser.addObject("Encoder Middle Gear", encoderMidGear);
 		chooser.addObject("motionProfilingRun", motionProfilingRun);
 		SmartDashboard.putData("Auto choices", chooser);
+		frontLeftMotor.enableBrakeMode(false);
+		frontRightMotor.enableBrakeMode(false);
+		backLeftMotor.enableBrakeMode(false);
+		frontLeftMotor.enableBrakeMode(false);
 	}
 
 	public void autonomousInit() {
@@ -101,8 +97,6 @@ public class Robot extends IterativeRobot {
 
 	public void teleopInit() {
 		CameraServer.getInstance().startAutomaticCapture();
-		// shooterMotorB.changeControlMode(TalonControlMode.Follower);
-		// shooterMotorB.set(6);
 		try {
 			new Compressor(30).start();
 		} catch (Exception e) {
@@ -119,21 +113,23 @@ public class Robot extends IterativeRobot {
 		if (gamepad.getRawButton(5)) { // left top
 			mode = 0; // regular
 		} else if (gamepad.getRawButton(6)) { // right top
-			mode = 1; // half
+			mode = 1; // 3/4 speed
 		} else if (gamepad.getRawButton(2)) { // B button
-			mode = 2;
+			mode = 2; // squared
 		}
-
+		
+		leftSpeed = gamepad.getRawAxis(5);
+		rightSpeed = gamepad.getRawAxis(1);
+		
 		if (mode == 0) {
-			leftSpeed = gamepad.getRawAxis(5);
-			rightSpeed = gamepad.getRawAxis(1);
 		} else if (mode == 1) {
-			leftSpeed = gamepad.getRawAxis(5) / 2;
-			rightSpeed = gamepad.getRawAxis(1) / 2;
+			leftSpeed *= 3.0/4.0;
+			rightSpeed *= 3.0/4.0;
 		} else if (mode == 2) {
-			leftSpeed = gamepad.getRawAxis(5) * Math.abs(gamepad.getRawAxis(5));
-			rightSpeed = gamepad.getRawAxis(1) * Math.abs(gamepad.getRawAxis(1));
+			leftSpeed = Math.abs(leftSpeed) * leftSpeed;
+			rightSpeed = Math.abs(rightSpeed) * rightSpeed;
 		}
+		
 		rd.tankDrive(leftSpeed, rightSpeed);
 
 		if (operatorJoystick.getRawButton(11) || gamepad.getRawButton(4)) {
@@ -144,9 +140,6 @@ public class Robot extends IterativeRobot {
 			winchMotor.set(0);
 		}
 
-		// if (operatorJoystick.getRawButton(1)) {
-		// shooterMotorA.set((1.0 - operatorJoystick.getThrottle()) / 2.0);
-		// }
 	}
 
 	/**
