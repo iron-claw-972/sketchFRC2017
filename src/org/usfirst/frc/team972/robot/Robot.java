@@ -49,7 +49,7 @@ public class Robot extends IterativeRobot {
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
 	RobotDrive rd = new RobotDrive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor);
-0
+
 	boolean winchPressedLastTime = false;
 	boolean runWinch = false;
 
