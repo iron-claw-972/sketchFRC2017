@@ -22,12 +22,12 @@ public class Robot extends IterativeRobot {
 	CANTalon backLeftMotor = new CANTalon(2);
 	CANTalon backRightMotor = new CANTalon(4);
 	CANTalon winchMotor = new CANTalon(5);
-	
-	DoubleSolenoid piston = new DoubleSolenoid(4,5);
-	
-//	CANTalon shooterMotorA = new CANTalon(6);
-//	CANTalon shooterMotorB = new CANTalon(7);
-//	CANTalon azimuthMotor = new CANTalon(10);
+
+	DoubleSolenoid piston = new DoubleSolenoid(4, 5);
+
+	// CANTalon shooterMotorA = new CANTalon(6);
+	// CANTalon shooterMotorB = new CANTalon(7);
+	// CANTalon azimuthMotor = new CANTalon(10);
 
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
@@ -35,13 +35,22 @@ public class Robot extends IterativeRobot {
 
 	boolean winchPressedLastTime = false;
 	boolean runWinch = false;
-	
+
 	int mode = 0;
 
 	double leftSpeed = 0.0;
 	double rightSpeed = 0.0;
-	
+
 	long startTime = 0;
+
+	boolean runTimeBaseline = false, runTimeMidGear = false, runEncoderMidGear = false, runMotionProfiling = false;
+	final String timeBaseline = "Time Baseline";
+	final String timeMidGear = "Time Middle Gear";
+	final String encoderMidGear = "Encoder Middle Gear";
+	final String motionProfilingRun = "Motion Profiling";
+	final String doNothing = "Do Nothing";
+	String autoSelected;
+	SendableChooser<String> chooser = new SendableChooser<>();
 
 	@Override
 	public void robotInit() {
@@ -49,17 +58,27 @@ public class Robot extends IterativeRobot {
 		frontRightMotor.enableBrakeMode(true);
 		backLeftMotor.enableBrakeMode(true);
 		frontLeftMotor.enableBrakeMode(true);
+//		chooser.addDefault("Do Nothing", doNothing);
+		chooser.addDefault("Time Baseline", timeBaseline);
+		chooser.addObject("Time Middle Gear", timeMidGear);
+		chooser.addObject("Encoder Middle Gear", encoderMidGear);
+		chooser.addObject("motionProfilingRun", motionProfilingRun);
+		SmartDashboard.putData("Auto choices", chooser);
 	}
 
 	public void autonomousInit() {
 		startTime = System.currentTimeMillis();
-		
+
 		try {
 			new Compressor(30).start();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("COMPRESSOR FAILED!");
 		}
+
+		autoSelected = chooser.getSelected();
+//		autoSelected = SmartDashboard.getString("Auto Selector", timeBaseline);
+		System.out.println("Auto selected: " + autoSelected);
 	}
 
 	public void autonomousPeriodic() {
@@ -68,19 +87,29 @@ public class Robot extends IterativeRobot {
 		} else {
 			rd.tankDrive(0, 0);
 		}
+
+		switch (autoSelected) {
+			case timeMidGear:
+
+				break;
+			case timeBaseline:
+			default:
+				// Put default auto code here
+				break;
+		}
 	}
 
 	public void teleopInit() {
 		CameraServer.getInstance().startAutomaticCapture();
-//		shooterMotorB.changeControlMode(TalonControlMode.Follower);
-//		shooterMotorB.set(6);
+		// shooterMotorB.changeControlMode(TalonControlMode.Follower);
+		// shooterMotorB.set(6);
 		try {
 			new Compressor(30).start();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("COMPRESSOR FAILED!");
 		}
-		
+
 		piston.set(DoubleSolenoid.Value.kReverse);
 	}
 
@@ -94,13 +123,13 @@ public class Robot extends IterativeRobot {
 		} else if (gamepad.getRawButton(2)) { // B button
 			mode = 2;
 		}
-		
+
 		if (mode == 0) {
 			leftSpeed = gamepad.getRawAxis(5);
 			rightSpeed = gamepad.getRawAxis(1);
 		} else if (mode == 1) {
-			leftSpeed = gamepad.getRawAxis(5)/2;
-			rightSpeed = gamepad.getRawAxis(1)/2;
+			leftSpeed = gamepad.getRawAxis(5) / 2;
+			rightSpeed = gamepad.getRawAxis(1) / 2;
 		} else if (mode == 2) {
 			leftSpeed = gamepad.getRawAxis(5) * Math.abs(gamepad.getRawAxis(5));
 			rightSpeed = gamepad.getRawAxis(1) * Math.abs(gamepad.getRawAxis(1));
@@ -115,9 +144,9 @@ public class Robot extends IterativeRobot {
 			winchMotor.set(0);
 		}
 
-//		if (operatorJoystick.getRawButton(1)) {
-//			shooterMotorA.set((1.0 - operatorJoystick.getThrottle()) / 2.0);
-//		}
+		// if (operatorJoystick.getRawButton(1)) {
+		// shooterMotorA.set((1.0 - operatorJoystick.getThrottle()) / 2.0);
+		// }
 	}
 
 	/**
