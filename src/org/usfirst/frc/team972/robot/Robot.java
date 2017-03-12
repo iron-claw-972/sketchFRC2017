@@ -23,7 +23,7 @@ public class Robot extends IterativeRobot {
 	CANTalon backRightMotor = new CANTalon(4);
 	CANTalon winchMotor = new CANTalon(5);
 	
-	Solenoid piston = new Solenoid(0);
+	DoubleSolenoid piston = new DoubleSolenoid(4,5);
 	
 //	CANTalon shooterMotorA = new CANTalon(6);
 //	CANTalon shooterMotorB = new CANTalon(7);
@@ -81,7 +81,7 @@ public class Robot extends IterativeRobot {
 			System.out.println("COMPRESSOR FAILED!");
 		}
 		
-		piston.set(false);
+		piston.set(DoubleSolenoid.Value.kReverse);
 	}
 
 	@Override
