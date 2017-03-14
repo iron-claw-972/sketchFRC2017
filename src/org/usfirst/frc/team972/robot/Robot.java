@@ -25,7 +25,7 @@ public class Robot extends IterativeRobot {
 	double prev_v_error = 0.0;
 	double prev_theta_error = 0.0;
 
-	public final double METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR = 1.613;
+	public final double METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR = .71;			
 
 	public final double ENCODER_CLICKS_PER_ROTATION = 2048;
 	public final double ROBOT_DRIVE_WHEEL_CIRCUMFERENCE = 0.320;
@@ -35,7 +35,7 @@ public class Robot extends IterativeRobot {
 	CANTalon backLeftMotor = new CANTalon(2);
 	CANTalon backRightMotor = new CANTalon(4);
 	CANTalon winchMotor = new CANTalon(5);
-
+	
 	Encoder leftDriveEncoderFront = new Encoder(0, 1, true, Encoder.EncodingType.k2X);
 	Encoder rightDriveEncoderFront = new Encoder(2, 3, false, Encoder.EncodingType.k2X);
 	Encoder leftDriveEncoderBack = new Encoder(4, 5, true, Encoder.EncodingType.k2X);
@@ -95,21 +95,22 @@ public class Robot extends IterativeRobot {
 			Vision.startGearVision();
 		}
 
-		mot.init(0.0, 0.0); //TODO remove
-		frontLeftMotor.setPosition(0);
-		frontRightMotor.setPosition(0);
-
-		try {
+		leftDriveEncoderFront.reset();
+		rightDriveEncoderFront.reset();
+		
+    try {
 			new Compressor(30).start();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("COMPRESSOR FAILED!");
 		}
 
-		autoSelected = autoChooser.getSelected();
+//		autoSelected = autoChooser.getSelected();
 
+		autoSelected = "Encoder Middle Gear";
 		System.out.println("Auto Selected: " + autoSelected);
 		SmartDashboard.putString("Auto Selected", autoSelected);
+		piston.set(DoubleSolenoid.Value.kForward);
 		mot.updateSmartDashboard();
 	}
 
@@ -164,12 +165,15 @@ public class Robot extends IterativeRobot {
 			prevTime = currTime;
 		}*//*else {
 			if (autoSelected == "Encoder Middle Gear") {
-				boolean pastPoint = ((frontLeftMotor
-						.getPosition() < ticksFromMeters(METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR))
-						|| (frontLeftMotor.getPosition() < ticksFromMeters(METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR)));
-				if ((System.currentTimeMillis() - startTime < 2540) && pastPoint) {
-					rd.tankDrive(-0.7, -0.7);
+				boolean pastPoint = ((rightDriveEncoderFront
+						.get() < ticksFromMeters(METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR))
+						|| (leftDriveEncoderFront.get() < ticksFromMeters(METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR)));
+				if ((System.currentTimeMillis() - startTime < 3000) && pastPoint) {
+					rd.tankDrive(-0.722, -0.7); // (right, left)
 				} else {
+					System.out.println("AUTO FINISHED Traveled:" + leftDriveEncoderFront.get() + " : " + rightDriveEncoderFront.get());
+					//System.out.println(leftDriveEncoderBack.get() + " : " + rightDriveEncoderBack.get());
+					System.out.println("Time: " + (System.currentTimeMillis() - startTime));
 					rd.tankDrive(0, 0);
 				}
 			} else if (autoSelected == "Time Middle Gear") {
@@ -210,6 +214,12 @@ public class Robot extends IterativeRobot {
 			e.printStackTrace();
 			System.out.println("COMPRESSOR FAILED!");
 		}
+
+		piston.set(DoubleSolenoid.Value.kForward);
+	}
+	
+	public void disabledPeriodic() {
+		piston.set(DoubleSolenoid.Value.kReverse);
 		mot.updateSmartDashboard();
 	}
 
@@ -242,7 +252,8 @@ public class Robot extends IterativeRobot {
 			leftSpeed = Math.abs(leftSpeed) * leftSpeed;
 			rightSpeed = Math.abs(rightSpeed) * rightSpeed;
 		}
-
+		
+		//System.out.println(leftDriveEncoderFront.get() + " " + rightDriveEncoderFront.get());
 		rd.tankDrive(leftSpeed, rightSpeed);
 
 		if (operatorJoystick.getRawButton(11) || gamepad.getRawButton(4)) {
