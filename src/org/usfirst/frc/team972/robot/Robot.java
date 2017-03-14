@@ -201,7 +201,12 @@ public class Robot extends IterativeRobot {
 
 	public void teleopInit() {
 		piston.set(DoubleSolenoid.Value.kForward);//forward = pistons down
-		
+		if(operatorJoystick.getRawButton(5)) {//TODO: Change button number to button preferred by operator
+			piston.set(DoubleSolenoid.Value.kReverse);//in case gear gets stuckon top of the gear mech, it can unjam
+		}
+		else {
+			piston.set(DoubleSolenoid.Value.kForward);
+		}
 		mot.init(0.0, 0.0); //TODO remove
 		Time.init();
 		CameraServer.getInstance().startAutomaticCapture();
@@ -433,9 +438,9 @@ public class Robot extends IterativeRobot {
 			return -9001.0;
 		}
 	}
-	/*
+	
 	public void disabledInit(){
 		piston.set(DoubleSolenoid.Value.kReverse);//reverse = pistons up
 	}
-	*/
+	
 }
