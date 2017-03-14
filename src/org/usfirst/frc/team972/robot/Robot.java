@@ -49,7 +49,7 @@ public class Robot extends IterativeRobot {
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
 	RobotDrive rd = new RobotDrive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor);
-0
+	
 	boolean winchPressedLastTime = false;
 	boolean runWinch = false;
 
@@ -110,12 +110,8 @@ public class Robot extends IterativeRobot {
 		autoSelected = "Encoder Middle Gear";
 		System.out.println("Auto Selected: " + autoSelected);
 		SmartDashboard.putString("Auto Selected", autoSelected);
-<<<<<<< HEAD
-		
 		piston.set(DoubleSolenoid.Value.kForward);
-=======
 		mot.updateSmartDashboard();
->>>>>>> 0b984bd4edf2b43c85003de429e0308049de041c
 	}
 
 	public void autonomousPeriodic() {
