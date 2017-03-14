@@ -44,12 +44,12 @@ public class Robot extends IterativeRobot {
 	MotionProfiling mot = new MotionProfiling();
 	SystemModel sys = new SystemModel();
 
-	DoubleSolenoid piston = new DoubleSolenoid(4, 5);
+	DoubleSolenoid piston = new DoubleSolenoid(30, 0, 1);
 
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
 	RobotDrive rd = new RobotDrive(frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor);
-	
+
 	boolean winchPressedLastTime = false;
 	boolean runWinch = false;
 
@@ -98,7 +98,7 @@ public class Robot extends IterativeRobot {
 		leftDriveEncoderFront.reset();
 		rightDriveEncoderFront.reset();
 		
-		try {
+    try {
 			new Compressor(30).start();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -115,11 +115,15 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void autonomousPeriodic() {
+		piston.set(DoubleSolenoid.Value.kForward);//forward = pistons down
 		double currTime = Time.get();
 		double loopTime = currTime - prevTime;
-		if (useMiddleGearAuto) {
+		updateModel(loopTime);
+		prevTime = currTime;
+		autonDrive(0.0, 1.7, 0.0, loopTime);
+		/*if (useMiddleGearAuto) {
 			boolean done = false;
-			if (visionData) {
+			/*if (visionData) {
 				if (Vision.newData()) {
 					double distance = Vision.getDistance();
 					double angle = Vision.getAngle() - 90; // change from 0 to 180 to -90 to 90
@@ -145,12 +149,12 @@ public class Robot extends IterativeRobot {
 							gear_theta, loopTime);
 				}
 			} else {
-				visionData = Vision.newData();
-				done = autonDrive(Constants.MIDDLE_GEAR_AUTO_X,
+				visionData = Vision.newData();*/
+				/*done = autonDrive(Constants.MIDDLE_GEAR_AUTO_X,
 						Constants.MIDDLE_GEAR_AUTO_Y, Constants.MIDDLE_GEAR_AUTO_THETA,
-						loopTime);
-			}
-			if (done) {
+						loopTime);*/
+			//}
+		/*	if (done) {
 				mot.reset(this, Constants.MIDDLE_GEAR_AUTO_X,
 						Constants.MIDDLE_GEAR_AUTO_Y, Constants.MIDDLE_GEAR_AUTO_THETA);
 				gear_x = 0.0;
@@ -159,7 +163,7 @@ public class Robot extends IterativeRobot {
 			}
 			updateModel(loopTime);
 			prevTime = currTime;
-		} else {
+		}*//*else {
 			if (autoSelected == "Encoder Middle Gear") {
 				boolean pastPoint = ((rightDriveEncoderFront
 						.get() < ticksFromMeters(METERS_FOR_ROBOT_TO_TRAVEL_POR_EL_GEAR))
@@ -195,11 +199,14 @@ public class Robot extends IterativeRobot {
 			default:
 				// Put default auto code here
 				break;
-		}
+		} */
 		mot.updateSmartDashboard();
 	}
 
 	public void teleopInit() {
+		piston.set(DoubleSolenoid.Value.kForward);//forward = pistons down
+		mot.init(0.0, 0.0); //TODO remove
+		Time.init();
 		CameraServer.getInstance().startAutomaticCapture();
 		try {
 			new Compressor(30).start();
@@ -219,6 +226,13 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 
+		if(operatorJoystick.getRawButton(5)) {//TODO: Change button number to button preferred by operator
+			piston.set(DoubleSolenoid.Value.kReverse);//in case gear gets stuckon top of the gear mech, it can unjam
+		}
+		else {
+			piston.set(DoubleSolenoid.Value.kForward);
+		}
+		
 		if (gamepad.getRawButton(5)) { // left top
 			mode = 0; // regular
 		} else if (gamepad.getRawButton(6)) { // right top
@@ -249,6 +263,10 @@ public class Robot extends IterativeRobot {
 		} else {
 			winchMotor.set(0);
 		}
+		double currTime = Time.get();
+		double loopTime = currTime - prevTime;
+		updateModel(loopTime);
+		prevTime = currTime;
 		mot.updateSmartDashboard();
 	}
 
@@ -351,6 +369,9 @@ public class Robot extends IterativeRobot {
 			} else {
 				rd.tankDrive(leftDriveInput, rightDriveInput);
 			}
+			
+			SmartDashboard.putNumber("LeftPower", leftDriveInput);
+			SmartDashboard.putNumber("RightPower", rightDriveInput);
 		} else {
 			if (curr_v > 0.15) {
 				rd.tankDrive(curr_v / 15, curr_v / 15);
@@ -385,6 +406,9 @@ public class Robot extends IterativeRobot {
 				} else {
 					rd.tankDrive(leftDriveInput, rightDriveInput);
 				}
+
+				SmartDashboard.putNumber("LeftPower", leftDriveInput);
+				SmartDashboard.putNumber("RightPower", rightDriveInput);
 			}
 		}
 
@@ -425,4 +449,9 @@ public class Robot extends IterativeRobot {
 			return -9001.0;
 		}
 	}
+	
+	public void disabledInit(){
+		piston.set(DoubleSolenoid.Value.kReverse);//reverse = pistons up
+	}
+	
 }

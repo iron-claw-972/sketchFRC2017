@@ -98,6 +98,7 @@ public class MotionProfiling {
 		SmartDashboard.putNumber("Angle", getTheta());
 		SmartDashboard.putNumber("Velocity", Math.pow((Math.pow(getV_X(), 2) + Math.pow(getV_Y(), 2)), 0.5));
 		SmartDashboard.putNumber("Accel", Math.pow((Math.pow(getA_X(), 2) + Math.pow(getA_Y(), 2)), 0.5));
+		System.out.println("X: " + getX() + "Y: " + getY() + "Angle: " + getTheta() + "V: " + Math.pow((Math.pow(getV_X(), 2) + Math.pow(getV_Y(), 2)), 0.5) + "A: " + Math.pow((Math.pow(getA_X(), 2) + Math.pow(getA_Y(), 2)), 0.5));
 	}
 
 	public double getX() {
