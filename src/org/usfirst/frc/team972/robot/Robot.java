@@ -201,12 +201,6 @@ public class Robot extends IterativeRobot {
 
 	public void teleopInit() {
 		piston.set(DoubleSolenoid.Value.kForward);//forward = pistons down
-		if(operatorJoystick.getRawButton(5)) {//TODO: Change button number to button preferred by operator
-			piston.set(DoubleSolenoid.Value.kReverse);//in case gear gets stuckon top of the gear mech, it can unjam
-		}
-		else {
-			piston.set(DoubleSolenoid.Value.kForward);
-		}
 		mot.init(0.0, 0.0); //TODO remove
 		Time.init();
 		CameraServer.getInstance().startAutomaticCapture();
@@ -222,7 +216,13 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 
-		// TODO: make sure to make a button for the piston to set it to reverse, so that the driver can press a button to bring the pistons up and push the gear into the holder
+		if(operatorJoystick.getRawButton(5)) {//TODO: Change button number to button preferred by operator
+			piston.set(DoubleSolenoid.Value.kReverse);//in case gear gets stuckon top of the gear mech, it can unjam
+		}
+		else {
+			piston.set(DoubleSolenoid.Value.kForward);
+		}
+		
 		if (gamepad.getRawButton(5)) { // left top
 			mode = 0; // regular
 		} else if (gamepad.getRawButton(6)) { // right top
