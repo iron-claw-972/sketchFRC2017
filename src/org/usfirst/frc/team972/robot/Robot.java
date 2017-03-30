@@ -30,7 +30,7 @@ public class Robot extends IterativeRobot {
 	RockefellerEncoder leftDriveEncoderBack = new RockefellerEncoder(4, 5, true);
 	RockefellerEncoder rightDriveEncoderBack = new RockefellerEncoder(6, 7, false);
 
-	DoubleSolenoid piston = new DoubleSolenoid(4, 5);
+	DoubleSolenoid piston = new DoubleSolenoid(30, 0, 2);
 
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
@@ -55,7 +55,7 @@ public class Robot extends IterativeRobot {
 
 	SendableChooser<String> autoChooser = new SendableChooser<>();
 	
-	TimeOfFlight tof;
+	//TimeOfFlight tof;
 	PIDControl pid;
 	PIDControl driveDistancePid;
 	
@@ -78,16 +78,15 @@ public class Robot extends IterativeRobot {
 		leftDriveEncoderBack.reset();
 		rightDriveEncoderFront.reset();
 		rightDriveEncoderBack.reset();
-		
+
 		winchMotorB.changeControlMode(TalonControlMode.Follower);
 		winchMotorB.set(winchMotorA.getDeviceID());
 	}
 
 	public void autonomousInit() {
-		
 		try {
 			if(tof != null) {
-				tof.port.closePort();
+  			tof.port.closePort();
 			}
 	    	tof = new TimeOfFlight();
 		} catch(Exception e) {
@@ -194,7 +193,7 @@ public class Robot extends IterativeRobot {
 	            	double pidOutputPower = pid.getOutput(currentAngle);
 	            
 	            	rd.tankDrive(Constants.GEAR_POWER + (pidOutputPower/4), Constants.GEAR_POWER + (-pidOutputPower/4));
-	        	}
+          }
 				break;
 			case LEFT_GEAR:
 				if(currTime > Constants.SIDE_GEAR_TIME_LIMIT) {
@@ -272,7 +271,13 @@ public class Robot extends IterativeRobot {
 			System.out.println("COMPRESSOR FAILED!");
 		}
 
-		piston.set(DoubleSolenoid.Value.kForward);
+		piston.set(DoubleSolenoid.Value.kReverse);
+		
+		leftDriveEncoderFront.reset();
+		rightDriveEncoderFront.reset();
+		leftDriveEncoderBack.reset();
+		rightDriveEncoderBack.reset();
+
 	}
 	
 	public void disabledPeriodic() {
@@ -281,6 +286,17 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopPeriodic() {
+		
+		SmartDashboard.putNumber("Left Encoder Front", leftDriveEncoderFront.get());
+		SmartDashboard.putNumber("Left Encoder Back", leftDriveEncoderBack.get());
+		SmartDashboard.putNumber("Right Encoder Front", rightDriveEncoderFront.get());
+		SmartDashboard.putNumber("Right Encoder Back", rightDriveEncoderBack.get());
+		
+		if (operatorJoystick.getRawButton(1) || gamepad.getRawButton(3)) {// joy trigger or gamepad X button
+			piston.set(DoubleSolenoid.Value.kForward);// forward is up, reverse is ready to receive gears
+		} else {
+			piston.set(DoubleSolenoid.Value.kReverse);
+		}
 
 		if (gamepad.getRawButton(Constants.MODE0_BUTTON)) { // left top
 			mode = 0; // regular
@@ -318,11 +334,12 @@ public class Robot extends IterativeRobot {
 			newHeadingClick = true;
 		}
 
-		if (operatorJoystick.getRawButton(3) || gamepad.getRawAxis(2) > 0.3) {
+		if (operatorJoystick.getRawButton(7) || gamepad.getRawAxis(2) > 0.3) {
 			winchMotorA.set(0.4);
-		} else if(operatorJoystick.getRawButton(4)) {
+		} else if(operatorJoystick.getRawButton(8)) {
 			winchMotorA.set(-0.4);
 		} else if (operatorJoystick.getRawButton(2)) {
+
 			winchMotorA.set(-operatorJoystick.getY());
 		} else {
 			winchMotorA.set(0);
