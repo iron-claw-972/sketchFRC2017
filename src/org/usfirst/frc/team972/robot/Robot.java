@@ -44,7 +44,7 @@ public class Robot extends IterativeRobot {
 	Encoder leftDriveEncoderBack = new Encoder(4, 5, true, Encoder.EncodingType.k2X);
 	Encoder rightDriveEncoderBack = new Encoder(6, 7, false, Encoder.EncodingType.k2X);
 
-	DoubleSolenoid piston = new DoubleSolenoid(4, 5);
+	DoubleSolenoid piston = new DoubleSolenoid(30, 0, 2);
 
 	Joystick gamepad = new Joystick(1);
 	Joystick operatorJoystick = new Joystick(0);
@@ -211,7 +211,7 @@ public class Robot extends IterativeRobot {
 			System.out.println("COMPRESSOR FAILED!");
 		}
 
-		piston.set(DoubleSolenoid.Value.kForward);
+		piston.set(DoubleSolenoid.Value.kReverse);
 	}
 	
 	public void disabledPeriodic() {
@@ -220,6 +220,12 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopPeriodic() {
+		
+		if (operatorJoystick.getRawButton(1) || gamepad.getRawButton(3)) {// joy trigger or gamepad X button
+			piston.set(DoubleSolenoid.Value.kForward);// forward is up, reverse is ready to receive gears
+		} else {
+			piston.set(DoubleSolenoid.Value.kReverse);
+		}
 
 		if (gamepad.getRawButton(5)) { // left top
 			mode = 0; // regular
@@ -258,7 +264,7 @@ public class Robot extends IterativeRobot {
 		}
 
 		if (operatorJoystick.getRawButton(11) || gamepad.getRawButton(4)) {
-			winchMotorA.set(1.0);
+			winchMotorA.set(0.7);
 		} else if (operatorJoystick.getRawButton(12) || gamepad.getRawButton(1)) {
 			winchMotorA.set(0.5);
 		} else {
