@@ -36,8 +36,8 @@ public class Robot extends IterativeRobot {
 	CANTalon frontRightMotor = new CANTalon(3);
 	CANTalon backLeftMotor = new CANTalon(2);
 	CANTalon backRightMotor = new CANTalon(4);
-	CANTalon winchMotorA = new CANTalon(13);
-	CANTalon winchMotorB = new CANTalon(14);
+	CANTalon winchMotorA = new CANTalon(5);
+	CANTalon winchMotorB = new CANTalon(6);
 	
 	Encoder leftDriveEncoderFront = new Encoder(0, 1, true, Encoder.EncodingType.k2X);
 	Encoder rightDriveEncoderFront = new Encoder(2, 3, false, Encoder.EncodingType.k2X);
@@ -212,6 +212,12 @@ public class Robot extends IterativeRobot {
 		}
 
 		piston.set(DoubleSolenoid.Value.kReverse);
+		
+		leftDriveEncoderFront.reset();
+		rightDriveEncoderFront.reset();
+		leftDriveEncoderBack.reset();
+		rightDriveEncoderBack.reset();
+
 	}
 	
 	public void disabledPeriodic() {
@@ -220,6 +226,11 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopPeriodic() {
+		
+		SmartDashboard.putNumber("Left Encoder Front", leftDriveEncoderFront.get());
+		SmartDashboard.putNumber("Left Encoder Back", leftDriveEncoderBack.get());
+		SmartDashboard.putNumber("Right Encoder Front", rightDriveEncoderFront.get());
+		SmartDashboard.putNumber("Right Encoder Back", rightDriveEncoderBack.get());
 		
 		if (operatorJoystick.getRawButton(1) || gamepad.getRawButton(3)) {// joy trigger or gamepad X button
 			piston.set(DoubleSolenoid.Value.kForward);// forward is up, reverse is ready to receive gears
