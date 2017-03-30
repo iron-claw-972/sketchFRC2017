@@ -36,7 +36,8 @@ public class Robot extends IterativeRobot {
 	CANTalon frontRightMotor = new CANTalon(3);
 	CANTalon backLeftMotor = new CANTalon(2);
 	CANTalon backRightMotor = new CANTalon(4);
-	CANTalon winchMotor = new CANTalon(5);
+	CANTalon winchMotorA = new CANTalon(5);
+	CANTalon winchMotorB = new CANTalon(6);
 	
 	Encoder leftDriveEncoderFront = new Encoder(0, 1, true, Encoder.EncodingType.k2X);
 	Encoder rightDriveEncoderFront = new Encoder(2, 3, false, Encoder.EncodingType.k2X);
@@ -85,6 +86,9 @@ public class Robot extends IterativeRobot {
 		frontRightMotor.enableBrakeMode(false);
 		backLeftMotor.enableBrakeMode(false);
 		frontLeftMotor.enableBrakeMode(false);
+		
+		winchMotorB.changeControlMode(TalonControlMode.Follower);
+		winchMotorB.set(winchMotorA.getDeviceID());
 	}
 
 	public void autonomousInit() {
@@ -252,11 +256,11 @@ public class Robot extends IterativeRobot {
 		}
 
 		if (operatorJoystick.getRawButton(11) || gamepad.getRawButton(4)) {
-			winchMotor.set(1.0);
+			winchMotorA.set(1.0);
 		} else if (operatorJoystick.getRawButton(12) || gamepad.getRawButton(1)) {
-			winchMotor.set(0.5);
+			winchMotorA.set(0.5);
 		} else {
-			winchMotor.set(0);
+			winchMotorA.set(0);
 		}
 	}
 
