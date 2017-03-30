@@ -263,10 +263,12 @@ public class Robot extends IterativeRobot {
 			newHeadingClick = true;
 		}
 
-		if (operatorJoystick.getRawButton(11) || gamepad.getRawButton(4)) {
-			winchMotorA.set(0.7);
-		} else if (operatorJoystick.getRawButton(12) || gamepad.getRawButton(1)) {
-			winchMotorA.set(0.5);
+		if (operatorJoystick.getRawButton(7) || gamepad.getRawAxis(2) > 0.3) { // left shoulder button
+			winchMotorA.set(0.4);
+		} else if (operatorJoystick.getRawButton(8)) {
+			winchMotorA.set(-0.4);
+		} else if (operatorJoystick.getRawButton(2)){
+			winchMotorA.set(-operatorJoystick.getY());
 		} else {
 			winchMotorA.set(0);
 		}
