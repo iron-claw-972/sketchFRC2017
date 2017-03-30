@@ -36,8 +36,8 @@ public class Robot extends IterativeRobot {
 	CANTalon frontRightMotor = new CANTalon(3);
 	CANTalon backLeftMotor = new CANTalon(2);
 	CANTalon backRightMotor = new CANTalon(4);
-	CANTalon winchMotorA = new CANTalon(5);
-	CANTalon winchMotorB = new CANTalon(6);
+	CANTalon winchMotorA = new CANTalon(13);
+	CANTalon winchMotorB = new CANTalon(14);
 	
 	Encoder leftDriveEncoderFront = new Encoder(0, 1, true, Encoder.EncodingType.k2X);
 	Encoder rightDriveEncoderFront = new Encoder(2, 3, false, Encoder.EncodingType.k2X);
@@ -69,7 +69,7 @@ public class Robot extends IterativeRobot {
 
 	SendableChooser<String> autoChooser = new SendableChooser<>();
 	
-	TimeOfFlight tof;
+	//TimeOfFlight tof;
 	PIDControl pid;
 	
 	@Override
@@ -92,16 +92,17 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void autonomousInit() {
-		
+		/*
 		try {
 			if(tof != null) {
-				tof.port.closePort();
+//				tof.port.closePort();
 			}
 	    	tof = new TimeOfFlight();
 		} catch(Exception e) {
 			e.printStackTrace();
 			System.out.println("TIME OF FLIGHT SENSOR COULD NOT WORK FOR SOME REASON.");
 		}
+		*/
 		
 		Time.init();
 
@@ -157,7 +158,7 @@ public class Robot extends IterativeRobot {
 				}
 				break;
 			case MIDDLE_GEAR:
-				
+				/*
 				if(currTime > MIDDLE_GEAR_TIME_LIMIT) {
 					rd.tankDrive(0, 0);
 					break; //We done!
@@ -182,6 +183,7 @@ public class Robot extends IterativeRobot {
 	            
 	            	rd.tankDrive(MIDDLE_GEAR_POWER + (pidOutputPower/4), MIDDLE_GEAR_POWER + (-pidOutputPower/4));
 	        	}
+	        	*/
 				break;
 			case LEFT_GEAR:
 				break;
