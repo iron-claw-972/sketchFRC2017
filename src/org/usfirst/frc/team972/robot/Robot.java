@@ -41,8 +41,9 @@ public class Robot extends IterativeRobot {
 	boolean winchPressedLastTime = false;
 	boolean runWinch = false;
 
-	int mode = 0;
-
+	boolean backMode = false;
+	boolean backPressedLastTime = false;
+	
 	double leftSpeed = 0.0;
 	double rightSpeed = 0.0;
 
@@ -88,6 +89,7 @@ public class Robot extends IterativeRobot {
 
 	public void autonomousInit() {
 		//IMU.init();
+		startTime = System.currentTimeMillis();
 		
 		run = true;
 		
@@ -125,14 +127,9 @@ public class Robot extends IterativeRobot {
 		
 		switch (autoSelected) {
 			case BASELINE:
-		        pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
-		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
-		        pid.setSetpoint(0);
-		        
-		        driveDistancePid = new PIDControl(Constants.DISTP, Constants.DISTI, Constants.DISTD, Constants.DISTF);
-		        driveDistancePid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
-		        driveDistancePid.setSetpoint(0);
-		        driveDistancePid.setOutputRampRate(Constants.PID_RAMP_RATE);
+				while (System.currentTimeMillis() < startTime + 1323) {
+					rd.tankDrive(0.6, 0.6);
+				}
 				break;
 			case MIDDLE_GEAR:
 		        pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
@@ -165,8 +162,11 @@ public class Robot extends IterativeRobot {
 		        System.out.println("RUNNING JODY CODE");
 		        
 				//cool code
-				DriveStraightEncoder(4, -0.6, 6);
+				
+		        DriveStraightEncoder(4, -0.6, 6); // distance is negative because encoders flipped :/
 				DriveStraight(0.5, -0.5);
+				
+				//DriveTurn(45, 5);
 				
 				//turn 45 for test
 				
@@ -313,6 +313,7 @@ public class Robot extends IterativeRobot {
 	
 	public void disabledPeriodic() {
 		piston.set(DoubleSolenoid.Value.kReverse);
+		run = false;
 	}
 
 	@Override
@@ -329,24 +330,17 @@ public class Robot extends IterativeRobot {
 			piston.set(DoubleSolenoid.Value.kReverse);
 		}
 
-		if (gamepad.getRawButton(Constants.MODE0_BUTTON)) { // left top
-			mode = 0; // regular
-		} else if (gamepad.getRawButton(Constants.MODE1_BUTTON)) { // right top
-			mode = 1; // 3/4 speed
-		} else if (gamepad.getRawButton(Constants.MODE2_BUTTON)) { // B button
-			mode = 2; // squared
+		if (gamepad.getRawButton(Constants.MODE0_BUTTON) && !backPressedLastTime) { // left top
+			backMode = !backMode; // regular
 		}
-
+		backPressedLastTime = gamepad.getRawButton(Constants.MODE0_BUTTON);
+		
 		leftSpeed = gamepad.getRawAxis(5);
 		rightSpeed = gamepad.getRawAxis(1);
-
-		if (mode == 0) {
-		} else if (mode == 1) {
-			leftSpeed *= 3.0 / 4.0;
-			rightSpeed *= 3.0 / 4.0;
-		} else if (mode == 2) {
-			leftSpeed = Math.abs(leftSpeed) * leftSpeed;
-			rightSpeed = Math.abs(rightSpeed) * rightSpeed;
+		
+		if (backMode) {
+			leftSpeed = -gamepad.getRawAxis(1);
+			rightSpeed = -gamepad.getRawAxis(5);
 		}
 		
 		//System.out.println(leftDriveEncoderFront.get() + " " + rightDriveEncoderFront.get());
@@ -376,7 +370,7 @@ public class Robot extends IterativeRobot {
 		}
 
 		if (operatorJoystick.getRawButton(7) || gamepad.getRawAxis(2) > 0.3) {
-			winchMotorA.set(0.8);
+			winchMotorA.set(0.9);
 		} else if(operatorJoystick.getRawButton(8)) {
 			winchMotorA.set(-0.3);
 		} else if (operatorJoystick.getRawButton(2)) {
@@ -409,54 +403,66 @@ public class Robot extends IterativeRobot {
     }
     
     public void DriveStraightEncoder(double time, double power, double dist) {
-    	leftDriveEncoderFront.reset();
+    	rightDriveEncoderBack.reset();
         IMU.recalibrate(0);
         pid.reset();
         
-        System.out.println("Starting Encoder Drive: " + leftDriveEncoderFront.getDistance());
+        System.out.println("Starting Encoder Drive: " + rightDriveEncoderBack.getDistance());
         
         for(int i=0; i<50 * time; i++) {
-        	if(leftDriveEncoderFront.getDistance() > dist) {
+        	if(Math.abs(rightDriveEncoderBack.getDistance()) > dist) {
         		System.out.println("Meet dist: " + dist);
         		break;
         	}
             double currentAngle = IMU.getAngle();
             double pidOutputPower = pid.getOutput(currentAngle);
-            System.out.println(leftDriveEncoderFront.getDistance() + " " + leftDriveEncoderBack.getDistance() + " " + rightDriveEncoderFront.getDistance() + " " + rightDriveEncoderBack.getDistance());
+            //System.out.println(leftDriveEncoderFront.getDistance() + " " + leftDriveEncoderBack.getDistance() + " " + rightDriveEncoderFront.getDistance() + " " + rightDriveEncoderBack.getDistance());
+            System.out.println(rightDriveEncoderBack.getDistance());
             rd.tankDrive(power + (pidOutputPower/4), power + (pidOutputPower/4));
             waitThread(20);
         }
         rd.tankDrive(0, 0);
     }
     
-    public void DriveTurn(double angle) {
+    public void DriveTurn(double angle, double maxTime) {
+    	double maxAccum = 0;
     	pid.reset();
     	IMU.recalibrate(0);
     	
     	if(angle > 0) {
     		pid.setOutputLimits(0, 0.7);
     	} else{
-    		pid.setOutputLimits(0, -0.7);
+    		pid.setOutputLimits(0, 0.7);
     	}
     	
-    	pid.setOutputRampRate(0.5);
-    	pid.setP(0.032);
-    	pid.setD(0.15);
+    	//pid.setOutputRampRate(0.5);
+    	pid.setP(0.042);
+    	pid.setD(0.0);
     	pid.setF(.1);
     	
     	int inTheZone = 0;
     	
-        double currentAngle = IMU.getAngle();
+        double currentAngle = IMU.getAngle() + angle;
         double pidOutputPower = pid.getOutput(currentAngle);
         
-        System.out.println(pidOutputPower);
+        //System.out.println(pidOutputPower);
         
-        while((inTheZone < 50) && run) {
-        	currentAngle = IMU.getAngle();
+        System.out.println("Turn Starting");
+        
+        while((inTheZone < 50)) {
+        	maxAccum++;
+        	if(maxAccum > (maxTime * 50)) {
+        		break;
+        	}
+        	if(run == false) break;
+        	
+        	currentAngle = IMU.getAngle() + angle;
         	pidOutputPower = pid.getOutput(currentAngle);
         	
+        	System.out.println(currentAngle + " : " + pidOutputPower);
+        	
         	if(Math.abs(currentAngle) < 20) {
-        		pid.setOutputLimits(-0.5, 0.5);
+        		pid.setOutputLimits(0.5);
         		pid.setI(0.025);
         		pid.setMaxIOutput(0.35);
         		inTheZone++;
@@ -465,6 +471,8 @@ public class Robot extends IterativeRobot {
             rd.tankDrive(pidOutputPower, -pidOutputPower);
             waitThread(20);
         }
+        
+        rd.tankDrive(0, 0);
         
         //reset the thing
         pid.setP(Constants.TURNP);
