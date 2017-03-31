@@ -327,6 +327,8 @@ public class Robot extends IterativeRobot {
 		} else {
 			winchMotorA.set(0);
 		}
+		
+		SmartDashboard.putNumber("Distance from Wall", tof.GetDataInMillimeters() * 0.03937); //distance in inches
 	}
 
 	/**
