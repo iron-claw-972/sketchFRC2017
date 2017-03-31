@@ -15,33 +15,20 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * resource directory.
  */
 public class Robot extends IterativeRobot {
-	public final double ENCODER_CLICKS_PER_ROTATION = 2048;
-	public final double ROBOT_DRIVE_WHEEL_CIRCUMFERENCE = 0.320;
-
-	double prevTime = 0.0;
-	
 	double timeHolder = 0; //used as a temp value for time for stuff
 	boolean newHeadingClick = false;
-	
-	double BASELINE_TIME = 0;
-	double BASELINE_POWER = 0.5;
-	
-	double MIDDLE_GEAR_POWER = 0.5; //We drive at this power
-	double MIDDLE_GEAR_DISTANCE = 100; //Until we get to this distance
-	double MIDDLE_GEAR_PUSH_TIME = 0.5; //Then we push for this long
-	double MIDDLE_GEAR_PUSH_POWER = 0.25; //With this much power
-	double MIDDLE_GEAR_TIME_LIMIT = 5; //And if we go this long, we auto-stop (incase sensor breaks or somthing)
 	
 	CANTalon frontLeftMotor = new CANTalon(1);
 	CANTalon frontRightMotor = new CANTalon(3);
 	CANTalon backLeftMotor = new CANTalon(2);
 	CANTalon backRightMotor = new CANTalon(4);
-	CANTalon winchMotor = new CANTalon(5);
+	CANTalon winchMotorA = new CANTalon(5);
+	CANTalon winchMotorB = new CANTalon(6);
 	
-	Encoder leftDriveEncoderFront = new Encoder(0, 1, true, Encoder.EncodingType.k2X);
-	Encoder rightDriveEncoderFront = new Encoder(2, 3, false, Encoder.EncodingType.k2X);
-	Encoder leftDriveEncoderBack = new Encoder(4, 5, true, Encoder.EncodingType.k2X);
-	Encoder rightDriveEncoderBack = new Encoder(6, 7, false, Encoder.EncodingType.k2X);
+	RockefellerEncoder leftDriveEncoderFront = new RockefellerEncoder(0, 1, true);
+	RockefellerEncoder rightDriveEncoderFront = new RockefellerEncoder(2, 3, false);
+	RockefellerEncoder leftDriveEncoderBack = new RockefellerEncoder(4, 5, true);
+	RockefellerEncoder rightDriveEncoderBack = new RockefellerEncoder(6, 7, false);
 
 	DoubleSolenoid piston = new DoubleSolenoid(4, 5);
 
@@ -70,6 +57,7 @@ public class Robot extends IterativeRobot {
 	
 	TimeOfFlight tof;
 	PIDControl pid;
+	PIDControl driveDistancePid;
 	
 	@Override
 	public void robotInit() {
@@ -85,6 +73,14 @@ public class Robot extends IterativeRobot {
 		frontRightMotor.enableBrakeMode(false);
 		backLeftMotor.enableBrakeMode(false);
 		frontLeftMotor.enableBrakeMode(false);
+		
+		leftDriveEncoderFront.reset();
+		leftDriveEncoderBack.reset();
+		rightDriveEncoderFront.reset();
+		rightDriveEncoderBack.reset();
+		
+		winchMotorB.changeControlMode(TalonControlMode.Follower);
+		winchMotorB.set(winchMotorA.getDeviceID());
 	}
 
 	public void autonomousInit() {
@@ -122,15 +118,29 @@ public class Robot extends IterativeRobot {
 		
 		switch (autoSelected) {
 			case BASELINE:
-		        pid = new PIDControl(0.012, 0.000, 0);
-		        pid.setOutputLimits(-0.5, 0.5);
+		        pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
+		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
 		        pid.setSetpoint(0);
+		        
+		        driveDistancePid = new PIDControl(Constants.DISTP, Constants.DISTI, Constants.DISTD, Constants.DISTF);
+		        driveDistancePid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        driveDistancePid.setSetpoint(0);
+		        driveDistancePid.setOutputRampRate(Constants.PID_RAMP_RATE);
 				break;
 			case MIDDLE_GEAR:
+		        pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
+		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        pid.setSetpoint(0);
 				break;
 			case LEFT_GEAR:
+				pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
+		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        pid.setSetpoint(0);
 				break;
 			case RIGHT_GEAR:
+				pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
+		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        pid.setSetpoint(0);
 				break;
 			case DO_NOTHING:
 				rd.tankDrive(0.0, 0.0);
@@ -138,50 +148,107 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
+	int InRange = 0;
+	
 	public void autonomousPeriodic() {
 		double currTime = Time.get();
-		double loopTime = currTime - prevTime;
 		switch (autoSelected) {
 			case BASELINE:
-				if(loopTime < BASELINE_TIME) {
+				if(InRange < (50 * 1)) { //50 loops per second
+					double distanceAway = Constants.BASELINE_DISTANCE - ((rightDriveEncoderFront.getDistance() + leftDriveEncoderFront.getDistance())/2);
+					double pidDriveBasePower = driveDistancePid.getOutput(distanceAway);
+					
+					if(Math.abs(distanceAway) < .5) {
+						InRange++;
+					} else {
+						InRange = 0;
+					}
+					
 					double currentAngle = (IMU.getAngle());
-					double pidOutputPower = pid.getOutput(currentAngle);
-	            
-					rd.tankDrive(BASELINE_POWER + (pidOutputPower/4), BASELINE_POWER + (-pidOutputPower/4));
+					double pidOutputPower = pid.getOutput(currentAngle);	            
+					rd.tankDrive(pidDriveBasePower + (pidOutputPower/4), pidDriveBasePower + (-pidOutputPower/4));
 				} else {
 					rd.tankDrive(0, 0);
 				}
 				break;
 			case MIDDLE_GEAR:
-				
-				if(currTime > MIDDLE_GEAR_TIME_LIMIT) {
+				if(currTime > Constants.MIDDLE_GEAR_TIME_LIMIT) {
 					rd.tankDrive(0, 0);
 					break; //We done!
 				}
 				
-				if((tof.GetDataInMillimeters() <= MIDDLE_GEAR_DISTANCE) && (tof.GetDataInMillimeters() > 0)) {
+				if((tof.GetDataInMillimeters() <= Constants.GEAR_DISTANCE) && (tof.GetDataInMillimeters() > 0)) {
 					if(timeHolder == 0) timeHolder = currTime; //get the time when the motors go into push gear mode.
 						
-					if(currTime < (MIDDLE_GEAR_PUSH_TIME + timeHolder)) {
+					if(currTime < (Constants.GEAR_PUSH_TIME + timeHolder)) {
 						double currentAngle = (IMU.getAngle());
 						double pidOutputPower = pid.getOutput(currentAngle); 
-						rd.tankDrive(MIDDLE_GEAR_PUSH_POWER + (pidOutputPower/4), MIDDLE_GEAR_PUSH_POWER + (-pidOutputPower/4));
+						rd.tankDrive(Constants.GEAR_PUSH_POWER + (pidOutputPower/4), Constants.GEAR_PUSH_POWER + (-pidOutputPower/4));
 					} else {
 						rd.tankDrive(0, 0); //We done!
 					}
 					
 					break;
 	        	} else {
-	        		
 	        		double currentAngle = IMU.getAngle();
 	            	double pidOutputPower = pid.getOutput(currentAngle);
 	            
-	            	rd.tankDrive(MIDDLE_GEAR_POWER + (pidOutputPower/4), MIDDLE_GEAR_POWER + (-pidOutputPower/4));
+	            	rd.tankDrive(Constants.GEAR_POWER + (pidOutputPower/4), Constants.GEAR_POWER + (-pidOutputPower/4));
 	        	}
 				break;
 			case LEFT_GEAR:
+				if(currTime > Constants.SIDE_GEAR_TIME_LIMIT) {
+					rd.tankDrive(0, 0);
+					break; //We done!
+				}
+				
+				pid.setSetpoint(60 / (1 + Math.exp(-(Constants.SIDE_GEAR_TURN_RATE * (currTime - Constants.SIDE_GEAR_MID_TURN)))));
+				
+				if((tof.GetDataInMillimeters() <= Constants.GEAR_DISTANCE) && (tof.GetDataInMillimeters() > 0)) {
+					if(timeHolder == 0) timeHolder = currTime; //get the time when the motors go into push gear mode.
+						
+					if(currTime < (Constants.GEAR_PUSH_TIME + timeHolder)) {
+						double currentAngle = (IMU.getAngle());
+						double pidOutputPower = pid.getOutput(currentAngle); 
+						rd.tankDrive(Constants.GEAR_PUSH_POWER + (pidOutputPower/4), Constants.GEAR_PUSH_POWER + (-pidOutputPower/4));
+					} else {
+						rd.tankDrive(0, 0); //We done!
+					}
+					
+					break;
+	        	} else {
+	        		double currentAngle = IMU.getAngle();
+	            	double pidOutputPower = pid.getOutput(currentAngle);
+	            
+	            	rd.tankDrive(Constants.GEAR_POWER + (pidOutputPower/4), Constants.GEAR_POWER + (-pidOutputPower/4));
+	        	}
 				break;
 			case RIGHT_GEAR:
+				if(currTime > Constants.SIDE_GEAR_TIME_LIMIT) {
+					rd.tankDrive(0, 0);
+					break; //We done!
+				}
+				
+				pid.setSetpoint(-60 / (1 + Math.exp(-(Constants.SIDE_GEAR_TURN_RATE * (currTime - Constants.SIDE_GEAR_MID_TURN)))));
+				
+				if((tof.GetDataInMillimeters() <= Constants.GEAR_DISTANCE) && (tof.GetDataInMillimeters() > 0)) {
+					if(timeHolder == 0) timeHolder = currTime; //get the time when the motors go into push gear mode.
+						
+					if(currTime < (Constants.GEAR_PUSH_TIME + timeHolder)) {
+						double currentAngle = (IMU.getAngle());
+						double pidOutputPower = pid.getOutput(currentAngle); 
+						rd.tankDrive(Constants.GEAR_PUSH_POWER + (pidOutputPower/4), Constants.GEAR_PUSH_POWER + (-pidOutputPower/4));
+					} else {
+						rd.tankDrive(0, 0); //We done!
+					}
+					
+					break;
+	        	} else {
+	        		double currentAngle = IMU.getAngle();
+	            	double pidOutputPower = pid.getOutput(currentAngle);
+	            
+	            	rd.tankDrive(Constants.GEAR_POWER + (pidOutputPower/4), Constants.GEAR_POWER + (-pidOutputPower/4));
+	        	}
 				break;
 			case DO_NOTHING:
 				rd.tankDrive(0.0, 0.0);
@@ -215,11 +282,11 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 
-		if (gamepad.getRawButton(5)) { // left top
+		if (gamepad.getRawButton(Constants.MODE0_BUTTON)) { // left top
 			mode = 0; // regular
-		} else if (gamepad.getRawButton(6)) { // right top
+		} else if (gamepad.getRawButton(Constants.MODE1_BUTTON)) { // right top
 			mode = 1; // 3/4 speed
-		} else if (gamepad.getRawButton(2)) { // B button
+		} else if (gamepad.getRawButton(Constants.MODE2_BUTTON)) { // B button
 			mode = 2; // squared
 		}
 
@@ -251,17 +318,15 @@ public class Robot extends IterativeRobot {
 			newHeadingClick = true;
 		}
 
-		if (operatorJoystick.getRawButton(11) || gamepad.getRawButton(4)) {
-			winchMotor.set(1.0);
-		} else if (operatorJoystick.getRawButton(12) || gamepad.getRawButton(1)) {
-			winchMotor.set(0.5);
+		if (operatorJoystick.getRawButton(3) || gamepad.getRawAxis(2) > 0.3) {
+			winchMotorA.set(0.4);
+		} else if(operatorJoystick.getRawButton(4)) {
+			winchMotorA.set(-0.4);
+		} else if (operatorJoystick.getRawButton(2)) {
+			winchMotorA.set(-operatorJoystick.getY());
 		} else {
-			winchMotor.set(0);
+			winchMotorA.set(0);
 		}
-	}
-
-	public double ticksFromMeters(double meters) {
-		return (ENCODER_CLICKS_PER_ROTATION / ROBOT_DRIVE_WHEEL_CIRCUMFERENCE) * meters;
 	}
 
 	/**
