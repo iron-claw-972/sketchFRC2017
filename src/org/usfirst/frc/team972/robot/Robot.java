@@ -18,6 +18,8 @@ public class Robot extends IterativeRobot {
 	double timeHolder = 0; //used as a temp value for time for stuff
 	boolean newHeadingClick = false;
 	
+	boolean run = false;
+	
 	CANTalon frontLeftMotor = new CANTalon(1);
 	CANTalon frontRightMotor = new CANTalon(3);
 	CANTalon backLeftMotor = new CANTalon(2);
@@ -51,6 +53,7 @@ public class Robot extends IterativeRobot {
 	final String LEFT_GEAR = "Left Gear";
 	final String RIGHT_GEAR = "Right Gear";
 	final String DO_NOTHING = "Do Nothing";
+	final String JODY = "JODY";
 	String autoSelected;
 
 	SendableChooser<String> autoChooser = new SendableChooser<>();
@@ -61,9 +64,12 @@ public class Robot extends IterativeRobot {
 	
 	@Override
 	public void robotInit() {
+		CameraServer.getInstance().startAutomaticCapture();
+		
 		IMU.init();
+		autoChooser.addDefault("JODY", JODY);
 		autoChooser.addObject("Baseline", BASELINE);
-		autoChooser.addDefault("Middle Gear", MIDDLE_GEAR);
+		autoChooser.addObject("Middle Gear", MIDDLE_GEAR);
 		autoChooser.addObject("Left Gear", LEFT_GEAR);
 		autoChooser.addObject("Right Gear", RIGHT_GEAR);
 		autoChooser.addObject("Do Nothing", DO_NOTHING);
@@ -84,6 +90,11 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void autonomousInit() {
+		//IMU.init();
+		
+		run = true;
+		
+		/*
 		try {
 			if(tof != null) {
   			tof.port.closePort();
@@ -92,7 +103,7 @@ public class Robot extends IterativeRobot {
 		} catch(Exception e) {
 			e.printStackTrace();
 			System.out.println("TIME OF FLIGHT SENSOR COULD NOT WORK FOR SOME REASON.");
-		}
+		} */
 		
 		Time.init();
 
@@ -143,11 +154,32 @@ public class Robot extends IterativeRobot {
 				break;
 			case DO_NOTHING:
 				rd.tankDrive(0.0, 0.0);
+				break;
+			case JODY:
+		        pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
+		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        pid.setSetpoint(0);
+		        
+		        driveDistancePid = new PIDControl(Constants.DISTP, Constants.DISTI, Constants.DISTD, Constants.DISTF);
+		        driveDistancePid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        driveDistancePid.setSetpoint(0);
+		        driveDistancePid.setOutputRampRate(Constants.PID_RAMP_RATE);
+		        
+		        System.out.println("RUNNING JODY CODE");
+		        
+				//cool code
+				DriveStraightEncoder(4, -0.6, 6);
+				DriveStraight(0.5, -0.5);
+				
+				//turn 45 for test
+				
 			break;
 		}
 	}
 
 	int InRange = 0;
+	
+	/*
 	
 	public void autonomousPeriodic() {
 		double currTime = Time.get();
@@ -253,13 +285,13 @@ public class Robot extends IterativeRobot {
 				rd.tankDrive(0.0, 0.0);
 				break;
 		}
-	}
+	} */
 
 	public void teleopInit() {
-		CameraServer.getInstance().startAutomaticCapture();
+		run = false;
 		
-        pid = new PIDControl(0.032, 0.000, 0);
-        pid.setOutputLimits(0.5);
+        pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
+        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
         pid.setSetpoint(0);
         
         IMU.recalibrate(0.0);
@@ -367,7 +399,101 @@ public class Robot extends IterativeRobot {
 		
 		//SmartDashboard.putNumber("Distance from Wall", tof.GetDataInMillimeters() * 0.03937); //distance in inches
 	}
+	
+    public double LogisticsCurve(double t, double setPoint, double rate, double midTurn) {
+		return setPoint / (1 + Math.exp(-(rate * (t - midTurn))));
+    }
+    
+    public void DriveStraight(double time, double power) {
+        IMU.recalibrate(0);
+        pid.reset();
 
+        for(int i=0; i<50 * time; i++) {
+            double currentAngle = IMU.getAngle();
+            double pidOutputPower = pid.getOutput(currentAngle);
+            
+            rd.tankDrive(power + (pidOutputPower/4), power + (pidOutputPower/4));
+            System.out.println(pidOutputPower);
+            waitThread(20);
+        }
+        rd.tankDrive(0, 0);
+    }
+    
+    public void DriveStraightEncoder(double time, double power, double dist) {
+    	leftDriveEncoderFront.reset();
+        IMU.recalibrate(0);
+        pid.reset();
+        
+        System.out.println("Starting Encoder Drive: " + leftDriveEncoderFront.getDistance());
+        
+        for(int i=0; i<50 * time; i++) {
+        	if(leftDriveEncoderFront.getDistance() > dist) {
+        		System.out.println("Meet dist: " + dist);
+        		break;
+        	}
+            double currentAngle = IMU.getAngle();
+            double pidOutputPower = pid.getOutput(currentAngle);
+            System.out.println(leftDriveEncoderFront.getDistance() + " " + leftDriveEncoderBack.getDistance() + " " + rightDriveEncoderFront.getDistance() + " " + rightDriveEncoderBack.getDistance());
+            rd.tankDrive(power + (pidOutputPower/4), power + (pidOutputPower/4));
+            waitThread(20);
+        }
+        rd.tankDrive(0, 0);
+    }
+    
+    public void DriveTurn(double angle) {
+    	pid.reset();
+    	IMU.recalibrate(0);
+    	
+    	if(angle > 0) {
+    		pid.setOutputLimits(0, 0.7);
+    	} else{
+    		pid.setOutputLimits(0, -0.7);
+    	}
+    	
+    	pid.setOutputRampRate(0.5);
+    	pid.setP(0.032);
+    	pid.setD(0.15);
+    	pid.setF(.1);
+    	
+    	int inTheZone = 0;
+    	
+        double currentAngle = IMU.getAngle();
+        double pidOutputPower = pid.getOutput(currentAngle);
+        
+        System.out.println(pidOutputPower);
+        
+        while((inTheZone < 50) && run) {
+        	currentAngle = IMU.getAngle();
+        	pidOutputPower = pid.getOutput(currentAngle);
+        	
+        	if(Math.abs(currentAngle) < 20) {
+        		pid.setOutputLimits(-0.5, 0.5);
+        		pid.setI(0.025);
+        		pid.setMaxIOutput(0.35);
+        		inTheZone++;
+        	}
+        	
+            rd.tankDrive(pidOutputPower, -pidOutputPower);
+            waitThread(20);
+        }
+        
+        //reset the thing
+        pid.setP(Constants.TURNP);
+        pid.setOutputRampRate(0);
+        pid.setF(0);
+        pid.setD(Constants.TURND);
+        pid.setI(Constants.TURNI);
+    }
+    
+    public void waitThread(double time) {
+        try {
+            Thread.sleep((long) time);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    
 	/**
 	 * This function is called periodically during test mode
 	 */
