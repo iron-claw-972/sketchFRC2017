@@ -55,15 +55,15 @@ public class Robot extends IterativeRobot {
 
 	SendableChooser<String> autoChooser = new SendableChooser<>();
 	
-	//TimeOfFlight tof;
+	TimeOfFlight tof;
 	PIDControl pid;
 	PIDControl driveDistancePid;
 	
 	@Override
 	public void robotInit() {
 		IMU.init();
-		autoChooser.addDefault("Baseline", BASELINE);
-		autoChooser.addObject("Middle Gear", MIDDLE_GEAR);
+		autoChooser.addObject("Baseline", BASELINE);
+		autoChooser.addDefault("Middle Gear", MIDDLE_GEAR);
 		autoChooser.addObject("Left Gear", LEFT_GEAR);
 		autoChooser.addObject("Right Gear", RIGHT_GEAR);
 		autoChooser.addObject("Do Nothing", DO_NOTHING);
@@ -258,8 +258,8 @@ public class Robot extends IterativeRobot {
 	public void teleopInit() {
 		CameraServer.getInstance().startAutomaticCapture();
 		
-        pid = new PIDControl(0.005, 0.000, 0);
-        pid.setOutputLimits(-0.5, 0.5);
+        pid = new PIDControl(0.032, 0.000, 0);
+        pid.setOutputLimits(0.5);
         pid.setSetpoint(0);
         
         IMU.recalibrate(0.0);
@@ -271,6 +271,16 @@ public class Robot extends IterativeRobot {
 			System.out.println("COMPRESSOR FAILED!");
 		}
 
+		try {
+			if(tof != null) {
+  			tof.port.closePort();
+			}
+	    	tof = new TimeOfFlight();
+		} catch(Exception e) {
+			e.printStackTrace();
+			System.out.println("TIME OF FLIGHT SENSOR COULD NOT WORK FOR SOME REASON.");
+		}
+		
 		piston.set(DoubleSolenoid.Value.kReverse);
 		
 		leftDriveEncoderFront.reset();
@@ -287,10 +297,10 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		
-		SmartDashboard.putNumber("Left Encoder Front", leftDriveEncoderFront.get());
-		SmartDashboard.putNumber("Left Encoder Back", leftDriveEncoderBack.get());
-		SmartDashboard.putNumber("Right Encoder Front", rightDriveEncoderFront.get());
-		SmartDashboard.putNumber("Right Encoder Back", rightDriveEncoderBack.get());
+		SmartDashboard.putNumber("Left Encoder Front", leftDriveEncoderFront.getClicks());
+		SmartDashboard.putNumber("Left Encoder Back", leftDriveEncoderBack.getClicks());
+		SmartDashboard.putNumber("Right Encoder Front", rightDriveEncoderFront.getClicks());
+		SmartDashboard.putNumber("Right Encoder Back", rightDriveEncoderBack.getClicks());
 		
 		if (operatorJoystick.getRawButton(1) || gamepad.getRawButton(3)) {// joy trigger or gamepad X button
 			piston.set(DoubleSolenoid.Value.kForward);// forward is up, reverse is ready to receive gears
@@ -319,7 +329,7 @@ public class Robot extends IterativeRobot {
 		}
 		
 		//System.out.println(leftDriveEncoderFront.get() + " " + rightDriveEncoderFront.get());
-		if(gamepad.getRawAxis(3) > .3) {
+		if(gamepad.getRawButton(1)) {
 			double pidOutputPower = pid.getOutput(IMU.getAngle());
 			
         	if(newHeadingClick) {
@@ -327,8 +337,18 @@ public class Robot extends IterativeRobot {
         		pid.reset();
         		newHeadingClick = false;
         	}
-        	
+        	System.out.println(pidOutputPower);
             rd.tankDrive(rightSpeed + (pidOutputPower * .25), rightSpeed + (-pidOutputPower * .25));
+		} else if(gamepad.getRawButton(2)) {
+			double pidOutputPower = pid.getOutput(IMU.getAngle());
+			
+        	if(newHeadingClick) {
+        		IMU.recalibrate(0.0);
+        		pid.reset();
+        		newHeadingClick = false;
+        	}
+        	System.out.println(pidOutputPower * leftSpeed);
+            rd.tankDrive((pidOutputPower * leftSpeed), (-pidOutputPower * leftSpeed));
 		} else {
 			rd.tankDrive(leftSpeed, rightSpeed);
 			newHeadingClick = true;
@@ -345,7 +365,7 @@ public class Robot extends IterativeRobot {
 			winchMotorA.set(0);
 		}
 		
-		SmartDashboard.putNumber("Distance from Wall", tof.GetDataInMillimeters() * 0.03937); //distance in inches
+		//SmartDashboard.putNumber("Distance from Wall", tof.GetDataInMillimeters() * 0.03937); //distance in inches
 	}
 
 	/**
