@@ -29,7 +29,7 @@ public class Robot extends IterativeRobot {
 	double MIDDLE_GEAR_POWER = 0.5; //We drive at this power
 	double MIDDLE_GEAR_DISTANCE = 100; //Until we get to this distance
 	double MIDDLE_GEAR_PUSH_TIME = 0.5; //Then we push for this long
-	double MIDDLE_GEAR_PUSH_POWER = 0.4; //With this much power
+	double MIDDLE_GEAR_PUSH_POWER = 0.25; //With this much power
 	double MIDDLE_GEAR_TIME_LIMIT = 5; //And if we go this long, we auto-stop (incase sensor breaks or somthing)
 	
 	CANTalon frontLeftMotor = new CANTalon(1);
