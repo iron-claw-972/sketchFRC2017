@@ -58,14 +58,11 @@ public class Robot extends IterativeRobot {
 
 	SendableChooser<String> autoChooser = new SendableChooser<>();
 	
-	TimeOfFlight tof;
 	PIDControl pid;
 	PIDControl driveDistancePid;
 	
 	@Override
-	public void robotInit() {
-		CameraServer.getInstance().startAutomaticCapture();
-		
+	public void robotInit() {		
 		IMU.init();
 		autoChooser.addDefault("JODY", JODY);
 		autoChooser.addObject("Baseline", BASELINE);
@@ -288,6 +285,8 @@ public class Robot extends IterativeRobot {
 	} */
 
 	public void teleopInit() {
+		CameraServer.getInstance().startAutomaticCapture();
+
 		run = false;
 		
         pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
@@ -303,16 +302,6 @@ public class Robot extends IterativeRobot {
 			System.out.println("COMPRESSOR FAILED!");
 		}
 
-		try {
-			if(tof != null) {
-  			tof.port.closePort();
-			}
-	    	tof = new TimeOfFlight();
-		} catch(Exception e) {
-			e.printStackTrace();
-			System.out.println("TIME OF FLIGHT SENSOR COULD NOT WORK FOR SOME REASON.");
-		}
-		
 		piston.set(DoubleSolenoid.Value.kReverse);
 		
 		leftDriveEncoderFront.reset();
@@ -387,9 +376,9 @@ public class Robot extends IterativeRobot {
 		}
 
 		if (operatorJoystick.getRawButton(7) || gamepad.getRawAxis(2) > 0.3) {
-			winchMotorA.set(0.4);
+			winchMotorA.set(0.8);
 		} else if(operatorJoystick.getRawButton(8)) {
-			winchMotorA.set(-0.4);
+			winchMotorA.set(-0.3);
 		} else if (operatorJoystick.getRawButton(2)) {
 
 			winchMotorA.set(-operatorJoystick.getY());
