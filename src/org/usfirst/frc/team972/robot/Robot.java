@@ -69,7 +69,7 @@ public class Robot extends IterativeRobot {
 
 	SendableChooser<String> autoChooser = new SendableChooser<>();
 	
-	//TimeOfFlight tof;
+	TimeOfFlight tof;
 	PIDControl pid;
 	
 	@Override
@@ -92,117 +92,135 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void autonomousInit() {
-		/*
+		startTime = System.currentTimeMillis();
+	}
+//		/*
+//		try {
+//			if(tof != null) {
+////				tof.port.closePort();
+//			}
+//	    	tof = new TimeOfFlight();
+//		} catch(Exception e) {
+//			e.printStackTrace();
+//			System.out.println("TIME OF FLIGHT SENSOR COULD NOT WORK FOR SOME REASON.");
+//		}
+//		*/
+//		
+//		Time.init();
+//
+//		leftDriveEncoderFront.reset();
+//		rightDriveEncoderFront.reset();
+//		leftDriveEncoderBack.reset();
+//		rightDriveEncoderBack.reset();
+//		
+//		IMU.recalibrate(0.0);
+//		
+//		try {
+//			new Compressor(30).start();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			System.out.println("COMPRESSOR FAILED!");
+//		}
+//
+//		autoSelected = autoChooser.getSelected();
+//		System.out.println("Auto Selected: " + autoSelected);
+//		SmartDashboard.putString("Auto Selected", autoSelected);
+//		piston.set(DoubleSolenoid.Value.kForward);
+//		
+//		switch (autoSelected) {
+//			case BASELINE:
+//		        pid = new PIDControl(0.012, 0.000, 0);
+//		        pid.setOutputLimits(-0.5, 0.5);
+//		        pid.setSetpoint(0);
+//				break;
+//			case MIDDLE_GEAR:
+//				break;
+//			case LEFT_GEAR:
+//				break;
+//			case RIGHT_GEAR:
+//				break;
+//			case DO_NOTHING:
+//				rd.tankDrive(0.0, 0.0);
+//			break;
+//		}
+//	}
+
+	public void autonomousPeriodic() {
+			if (System.currentTimeMillis() - startTime < 1323) {
+				rd.tankDrive(-0.7, -0.7);
+			} else {
+				rd.tankDrive(0, 0);
+			}
+	}
+		//		double currTime = Time.get();
+//		double loopTime = currTime - prevTime;
+//		switch (autoSelected) {
+//			case BASELINE:
+//				if(loopTime < BASELINE_TIME) {
+//					double currentAngle = (IMU.getAngle());
+//					double pidOutputPower = pid.getOutput(currentAngle);
+//	            
+//					rd.tankDrive(BASELINE_POWER + (pidOutputPower/4), BASELINE_POWER + (-pidOutputPower/4));
+//				} else {
+//					rd.tankDrive(0, 0);
+//				}
+//				break;
+//			case MIDDLE_GEAR:
+//				/*
+//				if(currTime > MIDDLE_GEAR_TIME_LIMIT) {
+//					rd.tankDrive(0, 0);
+//					break; //We done!
+//				}
+//				
+//				if((tof.GetDataInMillimeters() <= MIDDLE_GEAR_DISTANCE) && (tof.GetDataInMillimeters() > 0)) {
+//					if(timeHolder == 0) timeHolder = currTime; //get the time when the motors go into push gear mode.
+//						
+//					if(currTime < (MIDDLE_GEAR_PUSH_TIME + timeHolder)) {
+//						double currentAngle = (IMU.getAngle());
+//						double pidOutputPower = pid.getOutput(currentAngle); 
+//						rd.tankDrive(MIDDLE_GEAR_PUSH_POWER + (pidOutputPower/4), MIDDLE_GEAR_PUSH_POWER + (-pidOutputPower/4));
+//					} else {
+//						rd.tankDrive(0, 0); //We done!
+//					}
+//					
+//					break;
+//	        	} else {
+//	        		
+//	        		double currentAngle = IMU.getAngle();
+//	            	double pidOutputPower = pid.getOutput(currentAngle);
+//	            
+//	            	rd.tankDrive(MIDDLE_GEAR_POWER + (pidOutputPower/4), MIDDLE_GEAR_POWER + (-pidOutputPower/4));
+//	        	}
+//	        	*/
+//				break;
+//			case LEFT_GEAR:
+//				break;
+//			case RIGHT_GEAR:
+//				break;
+//			case DO_NOTHING:
+//				rd.tankDrive(0.0, 0.0);
+//				break;
+//		}
+//	}
+
+	public void teleopInit() {
+		CameraServer.getInstance().startAutomaticCapture();
+		
+        pid = new PIDControl(0.005, 0.000, 0);
+        pid.setOutputLimits(0.5);
+        pid.setSetpoint(0);
+        
+        IMU.recalibrate(0.0);
+        
 		try {
 			if(tof != null) {
-//				tof.port.closePort();
+				tof.port.closePort();
 			}
 	    	tof = new TimeOfFlight();
 		} catch(Exception e) {
 			e.printStackTrace();
 			System.out.println("TIME OF FLIGHT SENSOR COULD NOT WORK FOR SOME REASON.");
 		}
-		*/
-		
-		Time.init();
-
-		leftDriveEncoderFront.reset();
-		rightDriveEncoderFront.reset();
-		leftDriveEncoderBack.reset();
-		rightDriveEncoderBack.reset();
-		
-		IMU.recalibrate(0.0);
-		
-		try {
-			new Compressor(30).start();
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("COMPRESSOR FAILED!");
-		}
-
-		autoSelected = autoChooser.getSelected();
-		System.out.println("Auto Selected: " + autoSelected);
-		SmartDashboard.putString("Auto Selected", autoSelected);
-		piston.set(DoubleSolenoid.Value.kForward);
-		
-		switch (autoSelected) {
-			case BASELINE:
-		        pid = new PIDControl(0.012, 0.000, 0);
-		        pid.setOutputLimits(-0.5, 0.5);
-		        pid.setSetpoint(0);
-				break;
-			case MIDDLE_GEAR:
-				break;
-			case LEFT_GEAR:
-				break;
-			case RIGHT_GEAR:
-				break;
-			case DO_NOTHING:
-				rd.tankDrive(0.0, 0.0);
-			break;
-		}
-	}
-
-	public void autonomousPeriodic() {
-		double currTime = Time.get();
-		double loopTime = currTime - prevTime;
-		switch (autoSelected) {
-			case BASELINE:
-				if(loopTime < BASELINE_TIME) {
-					double currentAngle = (IMU.getAngle());
-					double pidOutputPower = pid.getOutput(currentAngle);
-	            
-					rd.tankDrive(BASELINE_POWER + (pidOutputPower/4), BASELINE_POWER + (-pidOutputPower/4));
-				} else {
-					rd.tankDrive(0, 0);
-				}
-				break;
-			case MIDDLE_GEAR:
-				/*
-				if(currTime > MIDDLE_GEAR_TIME_LIMIT) {
-					rd.tankDrive(0, 0);
-					break; //We done!
-				}
-				
-				if((tof.GetDataInMillimeters() <= MIDDLE_GEAR_DISTANCE) && (tof.GetDataInMillimeters() > 0)) {
-					if(timeHolder == 0) timeHolder = currTime; //get the time when the motors go into push gear mode.
-						
-					if(currTime < (MIDDLE_GEAR_PUSH_TIME + timeHolder)) {
-						double currentAngle = (IMU.getAngle());
-						double pidOutputPower = pid.getOutput(currentAngle); 
-						rd.tankDrive(MIDDLE_GEAR_PUSH_POWER + (pidOutputPower/4), MIDDLE_GEAR_PUSH_POWER + (-pidOutputPower/4));
-					} else {
-						rd.tankDrive(0, 0); //We done!
-					}
-					
-					break;
-	        	} else {
-	        		
-	        		double currentAngle = IMU.getAngle();
-	            	double pidOutputPower = pid.getOutput(currentAngle);
-	            
-	            	rd.tankDrive(MIDDLE_GEAR_POWER + (pidOutputPower/4), MIDDLE_GEAR_POWER + (-pidOutputPower/4));
-	        	}
-	        	*/
-				break;
-			case LEFT_GEAR:
-				break;
-			case RIGHT_GEAR:
-				break;
-			case DO_NOTHING:
-				rd.tankDrive(0.0, 0.0);
-				break;
-		}
-	}
-
-	public void teleopInit() {
-		CameraServer.getInstance().startAutomaticCapture();
-		
-        pid = new PIDControl(0.005, 0.000, 0);
-        pid.setOutputLimits(-0.5, 0.5);
-        pid.setSetpoint(0);
-        
-        IMU.recalibrate(0.0);
         
 		try {
 			new Compressor(30).start();
@@ -226,7 +244,6 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		
 		SmartDashboard.putNumber("Left Encoder Front", leftDriveEncoderFront.get());
 		SmartDashboard.putNumber("Left Encoder Back", leftDriveEncoderBack.get());
 		SmartDashboard.putNumber("Right Encoder Front", rightDriveEncoderFront.get());
@@ -268,21 +285,25 @@ public class Robot extends IterativeRobot {
         		newHeadingClick = false;
         	}
         	
+        	System.out.println(pidOutputPower);
             rd.tankDrive(rightSpeed + (pidOutputPower * .25), rightSpeed + (-pidOutputPower * .25));
 		} else {
 			rd.tankDrive(leftSpeed, rightSpeed);
 			newHeadingClick = true;
 		}
 
-		if (operatorJoystick.getRawButton(7) || gamepad.getRawAxis(2) > 0.3) { // left shoulder button
+		if (operatorJoystick.getRawButton(3) || gamepad.getRawAxis(2) > 0.3) { // left shoulder button
 			winchMotorA.set(0.4);
-		} else if (operatorJoystick.getRawButton(8)) {
+		} else if (operatorJoystick.getRawButton(4)) {
 			winchMotorA.set(-0.4);
 		} else if (operatorJoystick.getRawButton(2)){
 			winchMotorA.set(-operatorJoystick.getY());
 		} else {
 			winchMotorA.set(0);
 		}
+		
+		//System.out.println(tof.GetDataInMillimeters());
+		
 	}
 
 	public double ticksFromMeters(double meters) {

@@ -9,5 +9,7 @@
 	<classpathentry kind="lib" path="C:/Users/Iron Claw/wpilib/user/java/lib/CTRLib.jar"/>
 	<classpathentry kind="var" path="USERLIBS_DIR/CTRLib-javadoc.jar"/>
 	<classpathentry kind="var" path="USERLIBS_DIR/CTRLib.jar"/>
+	<classpathentry kind="lib" path="C:/Users/jbec2/wpilib/user/java/lib/CTRLib.jar"/>
+	<classpathentry kind="lib" path="C:/Users/jbec2/wpilib/user/java/lib/jSerialComm-1.3.11.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
