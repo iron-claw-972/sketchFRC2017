@@ -163,10 +163,36 @@ public class Robot extends IterativeRobot {
 		        
 				//cool code
 				
-		        DriveStraightEncoder(4, -0.6, 6); // distance is negative because encoders flipped :/
-				DriveStraight(0.5, -0.5);
+		        //DriveStraightEncoder(4, -0.6, 6); // distance is negative because encoders flipped :/
+				//DriveStraight(0.5, -0.5);
 				
-				//DriveTurn(45, 5);
+		        DriveStraightEncoder(4, -0.6, 4.88);
+		        waitThread(1000);
+				DriveTurn(60, 5);
+				waitThread(1000);
+//				DriveStraightEncoder(2, -0.6, 3.2);
+				
+				
+				//GHETTO BECAUSE NO IMU RESET...
+				rightDriveEncoderBack.reset();
+		        pid.reset();
+		        
+		        System.out.println("Starting Encoder Drive: " + rightDriveEncoderBack.getDistance());
+		        
+		        for(int i=0; i<50 * 3; i++) {
+		        	if(Math.abs(rightDriveEncoderBack.getDistance()) > 3.4) {
+		        		System.out.println("Meet dist: " + 3.4);
+		        		break;
+		        	}
+		            double currentAngle = IMU.getAngle() - 60;
+		            double pidOutputPower = pid.getOutput(currentAngle);
+		            //System.out.println(leftDriveEncoderFront.getDistance() + " " + leftDriveEncoderBack.getDistance() + " " + rightDriveEncoderFront.getDistance() + " " + rightDriveEncoderBack.getDistance());
+		            System.out.println(rightDriveEncoderBack.getDistance());
+		            rd.tankDrive(-0.6 + (pidOutputPower/4), -0.6 + (pidOutputPower/4));
+		            waitThread(20);
+		        }
+		        rd.tankDrive(0, 0);
+				
 				
 				//turn 45 for test
 				
@@ -329,19 +355,9 @@ public class Robot extends IterativeRobot {
 		} else {
 			piston.set(DoubleSolenoid.Value.kReverse);
 		}
-
-		if (gamepad.getRawButton(Constants.MODE0_BUTTON) && !backPressedLastTime) { // left top
-			backMode = !backMode; // regular
-		}
-		backPressedLastTime = gamepad.getRawButton(Constants.MODE0_BUTTON);
 		
 		leftSpeed = gamepad.getRawAxis(5);
 		rightSpeed = gamepad.getRawAxis(1);
-		
-		if (backMode) {
-			leftSpeed = -gamepad.getRawAxis(1);
-			rightSpeed = -gamepad.getRawAxis(5);
-		}
 		
 		//System.out.println(leftDriveEncoderFront.get() + " " + rightDriveEncoderFront.get());
 		if(gamepad.getRawButton(1)) {
@@ -428,17 +444,12 @@ public class Robot extends IterativeRobot {
     	double maxAccum = 0;
     	pid.reset();
     	IMU.recalibrate(0);
-    	
-    	if(angle > 0) {
-    		pid.setOutputLimits(0, 0.7);
-    	} else{
-    		pid.setOutputLimits(0, 0.7);
-    	}
+
+    	pid.setOutputLimits(0.6);
     	
     	//pid.setOutputRampRate(0.5);
-    	pid.setP(0.042);
+    	pid.setP(0.03);
     	pid.setD(0.0);
-    	pid.setF(.1);
     	
     	int inTheZone = 0;
     	
