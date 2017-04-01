@@ -300,16 +300,6 @@ public class Robot extends IterativeRobot {
         	
         	System.out.println(pidOutputPower);
             rd.tankDrive(leftPower, rightPower);
-		} else if(gamepad.getRawButton(2)) {
-			double pidOutputPower = pid.getOutput(IMU.getAngle());
-			
-        	if(newHeadingClick) {
-        		IMU.recalibrate(0.0);
-        		pid.reset();
-        		newHeadingClick = false;
-        	}
-        	System.out.println(pidOutputPower * leftSpeed);
-            rd.tankDrive((pidOutputPower * leftSpeed), (-pidOutputPower * leftSpeed));
 		} else {
 			rd.tankDrive(leftSpeed, rightSpeed);
 			newHeadingClick = true;
