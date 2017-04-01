@@ -13,7 +13,7 @@ public class Constants {
 	public static final double SIDE_GEAR_TURN_RATE = 2.0;
 	public static final double SIDE_GEAR_MID_TURN = 2.0;
 	
-	public static final double TURNP = 0.045;
+	public static final double TURNP = 0.035;
 	public static final double TURNI = 0.0;
 	public static final double TURND = 0.0;
 	

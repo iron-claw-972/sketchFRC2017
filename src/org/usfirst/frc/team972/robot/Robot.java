@@ -49,12 +49,12 @@ public class Robot extends IterativeRobot {
 
 	long startTime = 0;
 
+	final String TIME_BASELINE = "Time Baseline";
 	final String BASELINE = "Baseline";
 	final String MIDDLE_GEAR = "Middle Gear";
 	final String LEFT_GEAR = "Left Gear";
 	final String RIGHT_GEAR = "Right Gear";
 	final String DO_NOTHING = "Do Nothing";
-	final String JODY = "JODY";
 	String autoSelected;
 
 	SendableChooser<String> autoChooser = new SendableChooser<>();
@@ -65,12 +65,12 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotInit() {		
 		IMU.init();
-		autoChooser.addDefault("JODY", JODY);
 		autoChooser.addObject("Baseline", BASELINE);
 		autoChooser.addObject("Middle Gear", MIDDLE_GEAR);
 		autoChooser.addObject("Left Gear", LEFT_GEAR);
 		autoChooser.addObject("Right Gear", RIGHT_GEAR);
-		autoChooser.addObject("Do Nothing", DO_NOTHING);
+		autoChooser.addDefault("Do Nothing", DO_NOTHING);
+		autoChooser.addObject("Time Baseline", TIME_BASELINE);
 		SmartDashboard.putData("Auto choices", autoChooser);
 
 		frontLeftMotor.enableBrakeMode(false);
@@ -126,30 +126,28 @@ public class Robot extends IterativeRobot {
 		piston.set(DoubleSolenoid.Value.kForward);
 		
 		switch (autoSelected) {
-			case BASELINE:
-				while (System.currentTimeMillis() < startTime + 1323) {
+			case TIME_BASELINE:
+				while (System.currentTimeMillis() < startTime + 1678) {
 					rd.tankDrive(0.6, 0.6);
 				}
 				break;
-			case MIDDLE_GEAR:
-		        pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
-		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
-		        pid.setSetpoint(0);
-				break;
-			case LEFT_GEAR:
+			case BASELINE: //literally the same as middle gear
 				pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
 		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
 		        pid.setSetpoint(0);
-				break;
-			case RIGHT_GEAR:
-				pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
-		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
-		        pid.setSetpoint(0);
+		        
+		        driveDistancePid = new PIDControl(Constants.DISTP, Constants.DISTI, Constants.DISTD, Constants.DISTF);
+		        driveDistancePid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        driveDistancePid.setSetpoint(0);
+		        driveDistancePid.setOutputRampRate(Constants.PID_RAMP_RATE);
+				
+		        DriveStraightEncoder(4, -0.6, 6); // distance is negative because encoders flipped :/
+				///DriveStraight(0.5, -0.5);
 				break;
 			case DO_NOTHING:
 				rd.tankDrive(0.0, 0.0);
 				break;
-			case JODY:
+			case RIGHT_GEAR:
 		        pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
 		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
 		        pid.setSetpoint(0);
@@ -158,22 +156,13 @@ public class Robot extends IterativeRobot {
 		        driveDistancePid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
 		        driveDistancePid.setSetpoint(0);
 		        driveDistancePid.setOutputRampRate(Constants.PID_RAMP_RATE);
-		        
-		        System.out.println("RUNNING JODY CODE");
-		        
-				//cool code
-				
-		        //DriveStraightEncoder(4, -0.6, 6); // distance is negative because encoders flipped :/
-				//DriveStraight(0.5, -0.5);
 				
 		        DriveStraightEncoder(4, -0.6, 4.88);
 		        waitThread(1000);
 				DriveTurn(60, 5);
 				waitThread(1000);
-//				DriveStraightEncoder(2, -0.6, 3.2);
 				
-				
-				//GHETTO BECAUSE NO IMU RESET...
+				//DriveStraightEncoder(2, -0.6, 3.2);
 				rightDriveEncoderBack.reset();
 		        pid.reset();
 		        
@@ -188,127 +177,61 @@ public class Robot extends IterativeRobot {
 		            double pidOutputPower = pid.getOutput(currentAngle);
 		            //System.out.println(leftDriveEncoderFront.getDistance() + " " + leftDriveEncoderBack.getDistance() + " " + rightDriveEncoderFront.getDistance() + " " + rightDriveEncoderBack.getDistance());
 		            System.out.println(rightDriveEncoderBack.getDistance());
-		            rd.tankDrive(-0.6 + (pidOutputPower/4), -0.6 + (pidOutputPower/4));
+		            rd.tankDrive(-0.6 + (pidOutputPower/4), -0.6 - (pidOutputPower/4));
 		            waitThread(20);
 		        }
 		        rd.tankDrive(0, 0);
-				
-				
-				//turn 45 for test
-				
-			break;
-		}
-	}
-
-	int InRange = 0;
-	
-	/*
-	
-	public void autonomousPeriodic() {
-		double currTime = Time.get();
-		switch (autoSelected) {
-			case BASELINE:
-				if(InRange < (50 * 1)) { //50 loops per second
-					double distanceAway = Constants.BASELINE_DISTANCE - ((rightDriveEncoderFront.getDistance() + leftDriveEncoderFront.getDistance())/2);
-					double pidDriveBasePower = driveDistancePid.getOutput(distanceAway);
-					
-					if(Math.abs(distanceAway) < .5) {
-						InRange++;
-					} else {
-						InRange = 0;
-					}
-					
-					double currentAngle = (IMU.getAngle());
-					double pidOutputPower = pid.getOutput(currentAngle);	            
-					rd.tankDrive(pidDriveBasePower + (pidOutputPower/4), pidDriveBasePower + (-pidOutputPower/4));
-				} else {
-					rd.tankDrive(0, 0);
-				}
-				break;
+		        break;
 			case MIDDLE_GEAR:
-				if(currTime > Constants.MIDDLE_GEAR_TIME_LIMIT) {
-					rd.tankDrive(0, 0);
-					break; //We done!
-				}
+				pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
+		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        pid.setSetpoint(0);
+		        
+		        driveDistancePid = new PIDControl(Constants.DISTP, Constants.DISTI, Constants.DISTD, Constants.DISTF);
+		        driveDistancePid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        driveDistancePid.setSetpoint(0);
+		        driveDistancePid.setOutputRampRate(Constants.PID_RAMP_RATE);
 				
-				if((tof.GetDataInMillimeters() <= Constants.GEAR_DISTANCE) && (tof.GetDataInMillimeters() > 0)) {
-					if(timeHolder == 0) timeHolder = currTime; //get the time when the motors go into push gear mode.
-						
-					if(currTime < (Constants.GEAR_PUSH_TIME + timeHolder)) {
-						double currentAngle = (IMU.getAngle());
-						double pidOutputPower = pid.getOutput(currentAngle); 
-						rd.tankDrive(Constants.GEAR_PUSH_POWER + (pidOutputPower/4), Constants.GEAR_PUSH_POWER + (-pidOutputPower/4));
-					} else {
-						rd.tankDrive(0, 0); //We done!
-					}
-					
-					break;
-	        	} else {
-	        		double currentAngle = IMU.getAngle();
-	            	double pidOutputPower = pid.getOutput(currentAngle);
-	            
-	            	rd.tankDrive(Constants.GEAR_POWER + (pidOutputPower/4), Constants.GEAR_POWER + (-pidOutputPower/4));
-          }
+		        DriveStraightEncoder(4, -0.6, 6); // distance is negative because encoders flipped :/
+				DriveStraight(0.5, -0.5);
 				break;
 			case LEFT_GEAR:
-				if(currTime > Constants.SIDE_GEAR_TIME_LIMIT) {
-					rd.tankDrive(0, 0);
-					break; //We done!
-				}
+				pid = new PIDControl(Constants.TURNP, Constants.TURNI, Constants.TURND);
+		        pid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        pid.setSetpoint(0);
+		        
+		        driveDistancePid = new PIDControl(Constants.DISTP, Constants.DISTI, Constants.DISTD, Constants.DISTF);
+		        driveDistancePid.setOutputLimits(Constants.PID_OUTPUT_LIMIT);
+		        driveDistancePid.setSetpoint(0);
+		        driveDistancePid.setOutputRampRate(Constants.PID_RAMP_RATE);
 				
-				pid.setSetpoint(60 / (1 + Math.exp(-(Constants.SIDE_GEAR_TURN_RATE * (currTime - Constants.SIDE_GEAR_MID_TURN)))));
+		        DriveStraightEncoder(4, -0.6, 4.88);
+		        waitThread(1000);
+				DriveTurn(-60, 5);
+				waitThread(1000);
 				
-				if((tof.GetDataInMillimeters() <= Constants.GEAR_DISTANCE) && (tof.GetDataInMillimeters() > 0)) {
-					if(timeHolder == 0) timeHolder = currTime; //get the time when the motors go into push gear mode.
-						
-					if(currTime < (Constants.GEAR_PUSH_TIME + timeHolder)) {
-						double currentAngle = (IMU.getAngle());
-						double pidOutputPower = pid.getOutput(currentAngle); 
-						rd.tankDrive(Constants.GEAR_PUSH_POWER + (pidOutputPower/4), Constants.GEAR_PUSH_POWER + (-pidOutputPower/4));
-					} else {
-						rd.tankDrive(0, 0); //We done!
-					}
-					
-					break;
-	        	} else {
-	        		double currentAngle = IMU.getAngle();
-	            	double pidOutputPower = pid.getOutput(currentAngle);
-	            
-	            	rd.tankDrive(Constants.GEAR_POWER + (pidOutputPower/4), Constants.GEAR_POWER + (-pidOutputPower/4));
-	        	}
-				break;
-			case RIGHT_GEAR:
-				if(currTime > Constants.SIDE_GEAR_TIME_LIMIT) {
-					rd.tankDrive(0, 0);
-					break; //We done!
-				}
-				
-				pid.setSetpoint(-60 / (1 + Math.exp(-(Constants.SIDE_GEAR_TURN_RATE * (currTime - Constants.SIDE_GEAR_MID_TURN)))));
-				
-				if((tof.GetDataInMillimeters() <= Constants.GEAR_DISTANCE) && (tof.GetDataInMillimeters() > 0)) {
-					if(timeHolder == 0) timeHolder = currTime; //get the time when the motors go into push gear mode.
-						
-					if(currTime < (Constants.GEAR_PUSH_TIME + timeHolder)) {
-						double currentAngle = (IMU.getAngle());
-						double pidOutputPower = pid.getOutput(currentAngle); 
-						rd.tankDrive(Constants.GEAR_PUSH_POWER + (pidOutputPower/4), Constants.GEAR_PUSH_POWER + (-pidOutputPower/4));
-					} else {
-						rd.tankDrive(0, 0); //We done!
-					}
-					
-					break;
-	        	} else {
-	        		double currentAngle = IMU.getAngle();
-	            	double pidOutputPower = pid.getOutput(currentAngle);
-	            
-	            	rd.tankDrive(Constants.GEAR_POWER + (pidOutputPower/4), Constants.GEAR_POWER + (-pidOutputPower/4));
-	        	}
-				break;
-			case DO_NOTHING:
-				rd.tankDrive(0.0, 0.0);
-				break;
+				//DriveStraightEncoder(2, -0.6, 3.2);
+				rightDriveEncoderBack.reset();
+		        pid.reset();
+		        
+		        System.out.println("Starting Encoder Drive: " + rightDriveEncoderBack.getDistance());
+		        
+		        for(int i=0; i<50 * 3; i++) {
+		        	if(Math.abs(rightDriveEncoderBack.getDistance()) > 3.4) {
+		        		System.out.println("Meet dist: " + 3.4);
+		        		break;
+		        	}
+		            double currentAngle = IMU.getAngle() + 60;
+		            double pidOutputPower = pid.getOutput(currentAngle);
+		            //System.out.println(leftDriveEncoderFront.getDistance() + " " + leftDriveEncoderBack.getDistance() + " " + rightDriveEncoderFront.getDistance() + " " + rightDriveEncoderBack.getDistance());
+		            System.out.println(rightDriveEncoderBack.getDistance());
+		            rd.tankDrive(-0.6 + (pidOutputPower/4), -0.6 - (pidOutputPower/4));
+		            waitThread(20);
+		        }
+		        rd.tankDrive(0, 0);
+		        break;
 		}
-	} */
+	}
 
 	public void teleopInit() {
 		CameraServer.getInstance().startAutomaticCapture();
@@ -344,7 +267,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		
+		System.out.println("RUNNING");
 		SmartDashboard.putNumber("Left Encoder Front", leftDriveEncoderFront.getClicks());
 		SmartDashboard.putNumber("Left Encoder Back", leftDriveEncoderBack.getClicks());
 		SmartDashboard.putNumber("Right Encoder Front", rightDriveEncoderFront.getClicks());
@@ -360,7 +283,7 @@ public class Robot extends IterativeRobot {
 		rightSpeed = gamepad.getRawAxis(1);
 		
 		//System.out.println(leftDriveEncoderFront.get() + " " + rightDriveEncoderFront.get());
-		if(gamepad.getRawButton(1)) {
+		if((leftSpeed > .9) && (rightSpeed > .9)) {
 			double pidOutputPower = pid.getOutput(IMU.getAngle());
 			
         	if(newHeadingClick) {
@@ -368,8 +291,15 @@ public class Robot extends IterativeRobot {
         		pid.reset();
         		newHeadingClick = false;
         	}
+        	
+        	double leftPower = 0.9 + (pidOutputPower * .25);
+        	double rightPower = 0.9 + (-pidOutputPower * .25);
+        	
+        	if(leftPower > 1) leftPower = 1;
+        	if(rightPower > 1) rightPower = 1;
+        	
         	System.out.println(pidOutputPower);
-            rd.tankDrive(rightSpeed + (pidOutputPower * .25), rightSpeed + (-pidOutputPower * .25));
+            rd.tankDrive(leftPower, rightPower);
 		} else if(gamepad.getRawButton(2)) {
 			double pidOutputPower = pid.getOutput(IMU.getAngle());
 			
@@ -408,10 +338,11 @@ public class Robot extends IterativeRobot {
         pid.reset();
 
         for(int i=0; i<50 * time; i++) {
+        	if(run == false) break;
             double currentAngle = IMU.getAngle();
             double pidOutputPower = pid.getOutput(currentAngle);
             
-            rd.tankDrive(power + (pidOutputPower/4), power + (pidOutputPower/4));
+            rd.tankDrive(power + (pidOutputPower/4), power - (pidOutputPower/4));
             System.out.println(pidOutputPower);
             waitThread(20);
         }
@@ -426,6 +357,7 @@ public class Robot extends IterativeRobot {
         System.out.println("Starting Encoder Drive: " + rightDriveEncoderBack.getDistance());
         
         for(int i=0; i<50 * time; i++) {
+        	if(run == false) break;
         	if(Math.abs(rightDriveEncoderBack.getDistance()) > dist) {
         		System.out.println("Meet dist: " + dist);
         		break;
@@ -433,8 +365,8 @@ public class Robot extends IterativeRobot {
             double currentAngle = IMU.getAngle();
             double pidOutputPower = pid.getOutput(currentAngle);
             //System.out.println(leftDriveEncoderFront.getDistance() + " " + leftDriveEncoderBack.getDistance() + " " + rightDriveEncoderFront.getDistance() + " " + rightDriveEncoderBack.getDistance());
-            System.out.println(rightDriveEncoderBack.getDistance());
-            rd.tankDrive(power + (pidOutputPower/4), power + (pidOutputPower/4));
+            System.out.println(currentAngle + " : " + pidOutputPower);
+            rd.tankDrive(power + (pidOutputPower/4), power - (pidOutputPower/4));
             waitThread(20);
         }
         rd.tankDrive(0, 0);
